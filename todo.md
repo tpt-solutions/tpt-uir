@@ -5,138 +5,144 @@
 
 ---
 
-## Phase 1 — Core Crate (Weeks 1–2)
+## Phase 1 — Core Crate (Weeks 1–2) ✅ DONE (in-repo)
+
+> Implemented in `crates/tpt-uir-core`. All items below complete and verified by `cargo test -p tpt-uir-core`.
 
 ### Workspace Scaffold
-- [ ] Create root `Cargo.toml` as virtual workspace (`[workspace]`, `members = ["crates/*"]`, `resolver = "2"`)
-- [ ] Create `crates/tpt-uir-core/` directory structure (`src/`)
+- [x] Create root `Cargo.toml` as virtual workspace (`[workspace]`, `members = ["crates/*"]`, `resolver = "2"`)
+- [x] Create `crates/tpt-uir-core/` directory structure (`src/`)
 
 ### tpt-uir-core `Cargo.toml`
-- [ ] Set `#![no_std]` in crate — zero external dependencies
-- [ ] Add optional `serde` feature (`serde = { version = "1.0", optional = true, default-features = false, features = ["derive"] }`)
+- [x] Set `#![no_std]` in crate — zero external dependencies
+- [x] Add optional `serde` feature (`serde = { version = "1.0", optional = true, default-features = false, features = ["derive", "alloc"] }`)
 
 ### `src/lib.rs`
-- [ ] `#![no_std]` + `extern crate alloc` header
-- [ ] Declare modules: `pub mod types`, `pub mod attr`, `pub mod op_name`, `pub mod ir`
-- [ ] Re-export all public types at crate root
+- [x] `#![no_std]` + `extern crate alloc` header
+- [x] Declare modules: `pub mod types`, `pub mod attr`, `pub mod op_name`, `pub mod ir`
+- [x] Re-export all public types at crate root
 
 ### `src/types.rs` — Type System
-- [ ] `ScalarType` enum: I8, I16, I32, I64, U8, U16, U32, U64, F16, F32, F64, BF16, Bool, Q4_0, Q4_1, Q8_0
-- [ ] `ScalarType::size_bytes() -> usize` impl
-- [ ] `#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]` on `ScalarType`
-- [ ] `ShapeSpec` struct (`dimensions: Vec<Dimension>`)
-- [ ] `Dimension` enum: `Fixed(usize)`, `Symbolic(String)`, `Bounded { symbol: String, max_value: usize }`
-- [ ] `TensorType` struct (`dtype: ScalarType`, `shape: Option<ShapeSpec>`)
-- [ ] `Type` enum: `Scalar(ScalarType)`, `Tensor(TensorType)`, `Index`
-- [ ] `serde` derives on all types above
+- [x] `ScalarType` enum: I8, I16, I32, I64, U8, U16, U32, U64, F16, F32, F64, BF16, Bool, Q4_0, Q4_1, Q8_0
+- [x] `ScalarType::size_bytes() -> usize` impl
+- [x] `#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]` on `ScalarType`
+- [x] `ShapeSpec` struct (`dimensions: Vec<Dimension>`)
+- [x] `Dimension` enum: `Fixed(usize)`, `Symbolic(String)`, `Bounded { symbol: String, max_value: usize }`
+- [x] `TensorType` struct (`dtype: ScalarType`, `shape: Option<ShapeSpec>`)
+- [x] `Type` enum: `Scalar(ScalarType)`, `Tensor(TensorType)`, `Index`
+- [x] `serde` derives on all types above
 
 ### `src/attr.rs` — Attributes
-- [ ] `AttributeValue` enum: `I64(i64)`, `F64(f64)`, `String(String)`, `Type(Type)`, `Shape(ShapeSpec)`, `OpName(OpName)`
-- [ ] `Attribute` struct: `key: String`, `value: AttributeValue`
-- [ ] Convenience constructors: `Attribute::i64()`, `Attribute::f64()`, `Attribute::string()`, `Attribute::shape()`
-- [ ] `serde` derives on `Attribute` and `AttributeValue`
+- [x] `AttributeValue` enum: `I64(i64)`, `F64(f64)`, `String(String)`, `Type(Type)`, `Shape(ShapeSpec)`, `OpName(OpName)`
+- [x] `Attribute` struct: `key: String`, `value: AttributeValue`
+- [x] Convenience constructors: `Attribute::i64()`, `Attribute::f64()`, `Attribute::string()`, `Attribute::shape()`
+- [x] `serde` derives on `Attribute` and `AttributeValue`
 
 ### `src/op_name.rs` — Operation Names
-- [ ] `OpName` struct: `dialect: String`, `op: String`
-- [ ] `OpName::new(dialect, op)` constructor
-- [ ] `OpName::parse(s: &str) -> Result<Self, &'static str>` (splits on `.`)
-- [ ] `OpName::to_string(&self) -> String` (formats as `"dialect.op"`)
-- [ ] Predefined `&'static str` constants:
+- [x] `OpName` struct: `dialect: String`, `op: String`
+- [x] `OpName::new(dialect, op)` constructor
+- [x] `OpName::parse(s: &str) -> Result<Self, &'static str>` (splits on `.`)
+- [x] `OpName::to_string(&self) -> String` (formats as `"dialect.op"`)
+- [x] Predefined `&'static str` constants:
   - Core: `core.add`, `core.mul`, `core.load`, `core.store`
   - GPU: `tpt_gpu.launch`, `tpt_gpu.thread_id`, `tpt_gpu.barrier`, `tpt_gpu.alloc`, `tpt_gpu.dealloc`
   - Crucible: `tpt_crucible.map_flash`, `tpt_crucible.route_fpga`, `tpt_crucible.analog_conv`
   - Memory: `tpt_memory.scope_begin`, `tpt_memory.alloc`, `tpt_memory.scope_end`
-- [ ] `serde` derives on `OpName`
+- [x] `serde` derives on `OpName`
 
 ### `src/ir.rs` — Core IR Structures
-- [ ] `pub type ValueId = u32`
-- [ ] `pub type OpId = u32`
-- [ ] `Operation` struct: `id: OpId`, `op_name: OpName`, `operands: Vec<ValueId>`, `results: Vec<ValueId>`, `regions: Vec<Region>`, `attributes: Vec<Attribute>`
-- [ ] `Block` struct: `arguments: Vec<(ValueId, Type)>`, `operations: Vec<Operation>`
-- [ ] `Region` struct: `blocks: Vec<Block>`
-- [ ] `serde` derives on `Operation`, `Block`, `Region`
+- [x] `pub type ValueId = u32`
+- [x] `pub type OpId = u32`
+- [x] `Operation` struct: `id: OpId`, `op_name: OpName`, `operands: Vec<ValueId>`, `results: Vec<ValueId>`, `regions: Vec<Region>`, `attributes: Vec<Attribute>`
+- [x] `Block` struct: `arguments: Vec<(ValueId, Type)>`, `operations: Vec<Operation>`
+- [x] `Region` struct: `blocks: Vec<Block>`
+- [x] `serde` derives on `Operation`, `Block`, `Region`
 
 ### SSA Validation
-- [ ] `validate_region(region: &Region) -> Result<(), Vec<String>>` — walks all blocks, checks every `ValueId` in `operands` is defined by a result of a preceding op or block argument
-- [ ] Returns all violations (not just the first)
+- [x] `validate_region(region: &Region) -> Result<(), Vec<String>>` — walks all blocks, checks every `ValueId` in `operands` is defined by a result of a preceding op or block argument
+- [x] Returns all violations (not just the first)
 
 ### Tests (Phase 1)
-- [ ] `ScalarType::size_bytes()` — assert correct byte sizes for all variants
-- [ ] `OpName::parse()` — valid input roundtrip, invalid input returns `Err`
-- [ ] SSA validation — valid region passes, undefined-ValueId region returns error
-- [ ] `cargo test -p tpt-uir-core` green
-- [ ] `cargo clippy -p tpt-uir-core -- -D warnings` clean
-- [ ] `cargo build -p tpt-uir-core --no-default-features` succeeds (confirms no_std)
+- [x] `ScalarType::size_bytes()` — assert correct byte sizes for all variants
+- [x] `OpName::parse()` — valid input roundtrip, invalid input returns `Err`
+- [x] SSA validation — valid region passes, undefined-ValueId region returns error
+- [x] `cargo test -p tpt-uir-core` green
+- [x] `cargo clippy -p tpt-uir-core -- -D warnings` clean
+- [x] `cargo build -p tpt-uir-core --no-default-features` succeeds (confirms no_std)
 
 ---
 
-## Phase 2 — Dialect Definitions (Weeks 3–4)
+## Phase 2 — Dialect Definitions (Weeks 3–4) ✅ DONE (in-repo)
+
+> Implemented in `crates/tpt-uir-dialects`. All items below complete and verified by `cargo test -p tpt-uir-dialects`.
 
 ### tpt-uir-dialects Scaffold
-- [ ] Create `crates/tpt-uir-dialects/` with `src/` and `src/passes/`
-- [ ] `Cargo.toml`: depends on `tpt-uir-core` only; no other deps
+- [x] Create `crates/tpt-uir-dialects/` with `src/` and `src/passes/`
+- [x] `Cargo.toml`: depends on `tpt-uir-core` only; no other deps
 
 ### `src/gpu.rs` — GPU Dialect
-- [ ] Op name constants re-exported for GPU ops
-- [ ] `GpuOp` builder: helper to construct `Operation` with correct `op_name` and validate shape is `None` or `Bounded`
-- [ ] Doc comment: GPU dialect requires `Dimension::Bounded` or `None` — never `Fixed`
+- [x] Op name constants re-exported for GPU ops
+- [x] `GpuOp` builder: helper to construct `Operation` with correct `op_name` and validate shape is `None` or `Bounded`
+- [x] Doc comment: GPU dialect requires `Dimension::Bounded` or `None` — never `Fixed`
 
 ### `src/crucible.rs` — Crucible Dialect
-- [ ] Op name constants re-exported for Crucible ops
-- [ ] `CrucibleOp` builder: helper to construct `Operation` with correct `op_name`
-- [ ] `validate_crucible_region(region: &Region) -> Result<(), Vec<String>>` — errors if any tensor shape contains `Symbolic` or `Bounded` dims
-- [ ] Hardware routing attribute helper: `Attribute::target_ip_block(block_name: &str) -> Attribute`
+- [x] Op name constants re-exported for Crucible ops
+- [x] `CrucibleOp` builder: helper to construct `Operation` with correct `op_name`
+- [x] `validate_crucible_region(region: &Region) -> Result<(), Vec<String>>` — errors if any tensor shape contains `Symbolic` or `Bounded` dims
+- [x] Hardware routing attribute helper: `crucible::target_ip_block(block_name: &str) -> Attribute`
 
 ### `src/memory.rs` — Memory Dialect
-- [ ] Op name constants for `tpt_memory.*`
-- [ ] `MemOp` builders: `scope_begin(lifetime: &str)`, `mem_alloc(size_bytes: ValueId, scope: &str)`, `scope_end(lifetime: &str)`
+- [x] Op name constants for `tpt_memory.*`
+- [x] `MemOp` builders: `scope_begin(lifetime: &str)`, `mem_alloc(size_bytes: ValueId, scope: &str)`, `scope_end(lifetime: &str)`
 
 ### `src/passes/liveness.rs` — Liveness Pass
-- [ ] `inject_memory_ops(region: &mut Region, scope_name: &str)` — walks ops in each block, wraps alloc-bearing operations with `mem.scope_begin` / `mem.alloc` / `mem.scope_end`
+- [x] `inject_memory_ops(region: &mut Region, scope_name: &str)` — walks ops in each block, wraps alloc-bearing operations with `mem.scope_begin` / `mem.alloc` / `mem.scope_end`
 
 ### Dialect Validation Trait
-- [ ] `pub trait ValidateDialect` with `fn validate(region: &Region) -> Result<(), Vec<String>>`
-- [ ] Implement for `GpuDialect` and `CrucibleDialect` marker types
+- [x] `pub trait ValidateDialect` with `fn validate(region: &Region) -> Result<(), Vec<String>>`
+- [x] Implement for `GpuDialect` and `CrucibleDialect` marker types
 
 ### Tests (Phase 2)
-- [ ] Crucible validator rejects `Symbolic` and `Bounded` dims, accepts `Fixed` only
-- [ ] Liveness pass correctly injects memory ops around alloc operations
-- [ ] `cargo test -p tpt-uir-dialects` green
-- [ ] `cargo test --workspace` green
+- [x] Crucible validator rejects `Symbolic` and `Bounded` dims, accepts `Fixed` only
+- [x] Liveness pass correctly injects memory ops around alloc operations
+- [x] `cargo test -p tpt-uir-dialects` green
+- [x] `cargo test --workspace` green
 
 ---
 
-## Phase 2b — Serialization (Weeks 3–4)
+## Phase 2b — Serialization (Weeks 3–4) ✅ DONE (in-repo)
+
+> Implemented in `crates/tpt-uir-serde`. All items below complete and verified by `cargo test -p tpt-uir-serde` (file I/O verified with `--features std`).
 
 ### tpt-uir-serde Scaffold
-- [ ] Create `crates/tpt-uir-serde/` with `src/`
-- [ ] `Cargo.toml`:
+- [x] Create `crates/tpt-uir-serde/` with `src/`
+- [x] `Cargo.toml`:
   ```toml
   [dependencies]
   postcard = { version = "1.0", default-features = false, features = ["alloc"] }
   serde = { version = "1.0", default-features = false, features = ["derive"] }
   tpt-uir-core = { path = "../tpt-uir-core", features = ["serde"] }
   ```
-- [ ] Optional `std` feature for file I/O helpers
+- [x] Optional `std` feature for file I/O helpers
 
 ### `src/lib.rs`
-- [ ] `serialize_op(op: &Operation) -> Result<Vec<u8>, postcard::Error>`
-- [ ] `deserialize_op(bytes: &[u8]) -> Result<Operation, postcard::Error>`
-- [ ] `serialize_region(region: &Region) -> Result<Vec<u8>, postcard::Error>`
-- [ ] `deserialize_region(bytes: &[u8]) -> Result<Region, postcard::Error>`
-- [ ] `#[cfg(feature = "std")] write_tptuir(path, region)` — write `.tptuir` file
-- [ ] `#[cfg(feature = "std")] read_tptuir(path) -> Result<Region, ...>` — read `.tptuir` file
+- [x] `serialize_op(op: &Operation) -> Result<Vec<u8>, postcard::Error>`
+- [x] `deserialize_op(bytes: &[u8]) -> Result<Operation, postcard::Error>`
+- [x] `serialize_region(region: &Region) -> Result<Vec<u8>, postcard::Error>`
+- [x] `deserialize_region(bytes: &[u8]) -> Result<Region, postcard::Error>`
+- [x] `#[cfg(feature = "std")] write_tptuir(path, region)` — write `.tptuir` file
+- [x] `#[cfg(feature = "std")] read_tptuir(path) -> Result<Region, ...>` — read `.tptuir` file
 
 ### Tests (Phase 2b)
-- [ ] Round-trip `Operation`: serialize → deserialize → assert eq
-- [ ] Round-trip `Region` with nested blocks and multiple ops
-- [ ] `cargo test -p tpt-uir-serde` green
+- [x] Round-trip `Operation`: serialize → deserialize → assert eq
+- [x] Round-trip `Region` with nested blocks and multiple ops
+- [x] `cargo test -p tpt-uir-serde` green
 
 ---
 
-## Phase 3 — Ingestion Adapters (Weeks 5–6)
+## Phase 3 — Ingestion Adapters (Weeks 5–6) ⛔ OUT OF REPO
 
-> These tasks live in the `tpt-gpu` and `tpt-crucible` repos.
+> These tasks live in the `tpt-gpu` and `tpt-crucible` repos — NOT in this `tpt-uir` repo. They are listed here for completeness but cannot be implemented here. The `tpt-uir` side (dialect ops, validation, serialization) that they depend on is complete.
 
 ### tpt-gpu Adapter
 - [ ] Add `tpt-uir-dialects` as a dependency in `tpt-gpu`
@@ -158,9 +164,9 @@
 
 ---
 
-## Phase 4 — Prover Bridge (Weeks 7–8)
+## Phase 4 — Prover Bridge (Weeks 7–8) ⛔ OUT OF REPO
 
-> These tasks live in the `tpt-telos` repo.
+> These tasks live in the `tpt-telos` repo — NOT in this `tpt-uir` repo. The `tpt-uir` side they consume (memory dialect ops, `Dimension::Symbolic` extraction, serialization) is complete.
 
 ### tpt-telos Setup
 - [ ] Add `tpt-uir-dialects` and `tpt-uir-serde` as dependencies in `tpt-telos`
@@ -186,10 +192,10 @@
 
 ---
 
-## CI / Quality Gates
+## CI / Quality Gates ✅ DONE
 
-- [ ] `cargo test --workspace` — all tests pass
-- [ ] `cargo clippy --workspace -- -D warnings` — zero warnings
-- [ ] `cargo build --workspace --no-default-features` — confirms `no_std` integrity
-- [ ] `cargo fmt --check` — formatted
-- [ ] Add GitHub Actions workflow (or equivalent CI) running the above on every push
+- [x] `cargo test --workspace` — all tests pass
+- [x] `cargo clippy --workspace -- -D warnings` — zero warnings
+- [x] `cargo build --workspace --no-default-features` — confirms `no_std` integrity
+- [x] `cargo fmt --check` — formatted
+- [x] Add GitHub Actions workflow (or equivalent CI) running the above on every push

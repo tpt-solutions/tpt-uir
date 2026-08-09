@@ -1,0 +1,15 @@
+[package]
+name = "tpt-uir-serde"
+version = "0.1.0"
+edition = "2021"
+description = "Zero-copy serialization for TPT-UIR (postcard)"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+postcard = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", default-features = false, features = ["alloc"] }
+tpt-uir-core = { path = "../tpt-uir-core", features = ["serde"] }
+
+[features]
+default = []
+std = []
