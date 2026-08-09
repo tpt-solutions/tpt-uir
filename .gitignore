@@ -33,3 +33,15 @@ flamegraph.svg
 # Coverage
 tarpaulin-report.html
 lcov.info
+
+# Generated API docs (cargo doc)
+/doc/
+**/doc/
+
+# Nextest / test artifacts
+/test-results.xml
+*.nextest
+
+# Crate packaging
+*.crate
+
