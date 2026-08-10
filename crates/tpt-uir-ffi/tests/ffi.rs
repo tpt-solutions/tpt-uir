@@ -2,14 +2,17 @@ use std::ffi::CStr;
 use std::os::raw::{c_char, c_void};
 use std::ptr;
 
-use tpt_uir_core::{Block, Operation, OpName, Region};
+use tpt_uir_core::{Block, OpName, Operation, Region};
 use tpt_uir_serde::serialize_region;
 
 #[test]
 fn ffi_load_and_query() {
     let region = Region {
         blocks: vec![Block {
-            arguments: vec![(0, tpt_uir_core::Type::Index), (1, tpt_uir_core::Type::Index)],
+            arguments: vec![
+                (0, tpt_uir_core::Type::Index),
+                (1, tpt_uir_core::Type::Index),
+            ],
             operations: vec![Operation {
                 id: 1,
                 op_name: OpName::parse("tpt_gpu.launch").unwrap(),
@@ -28,11 +31,17 @@ fn ffi_load_and_query() {
     assert!(!handle.is_null());
 
     let mut blocks: usize = 0;
-    assert_eq!(unsafe { tpt_uir_ffi::tpt_uir_block_count(handle, &mut blocks) }, 0);
+    assert_eq!(
+        unsafe { tpt_uir_ffi::tpt_uir_block_count(handle, &mut blocks) },
+        0
+    );
     assert_eq!(blocks, 1);
 
     let mut ops: usize = 0;
-    assert_eq!(unsafe { tpt_uir_ffi::tpt_uir_op_count(handle, 0, &mut ops) }, 0);
+    assert_eq!(
+        unsafe { tpt_uir_ffi::tpt_uir_op_count(handle, 0, &mut ops) },
+        0
+    );
     assert_eq!(ops, 1);
 
     let mut dialect: *const c_char = ptr::null();
@@ -44,7 +53,10 @@ fn ffi_load_and_query() {
     assert_eq!(d, "tpt_gpu");
 
     let mut op: *const c_char = ptr::null();
-    assert_eq!(unsafe { tpt_uir_ffi::tpt_uir_op_op(handle, 0, 0, &mut op) }, 0);
+    assert_eq!(
+        unsafe { tpt_uir_ffi::tpt_uir_op_op(handle, 0, 0, &mut op) },
+        0
+    );
     assert_eq!(unsafe { CStr::from_ptr(op) }.to_str().unwrap(), "launch");
 
     let mut oc: usize = 0;
@@ -63,11 +75,11 @@ fn ffi_load_and_query() {
 
     assert_eq!(unsafe { tpt_uir_ffi::tpt_uir_validate_ssa(handle) }, 0);
     assert_eq!(
-        unsafe { tpt_uir_ffi::tpt_uir_validate_dialect(handle, b"tpt_gpu\0".as_ptr() as *const c_char) },
+        unsafe { tpt_uir_ffi::tpt_uir_validate_dialect(handle, c"tpt_gpu".as_ptr()) },
         0
     );
     assert_eq!(
-        unsafe { tpt_uir_ffi::tpt_uir_validate_dialect(handle, b"crucible\0".as_ptr() as *const c_char) },
+        unsafe { tpt_uir_ffi::tpt_uir_validate_dialect(handle, c"crucible".as_ptr()) },
         1
     );
 

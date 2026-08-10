@@ -50,19 +50,22 @@ mod tests {
         Region {
             blocks: vec![Block {
                 arguments: vec![
-                    (0u32, Type::Tensor(TensorType {
-                        dtype: ScalarType::F32,
-                        shape: Some(ShapeSpec {
-                            dimensions: vec![
-                                Dimension::Fixed(1),
-                                Dimension::Symbolic("n".into()),
-                                Dimension::Bounded {
-                                    symbol: "m".into(),
-                                    max_value: 1024,
-                                },
-                            ],
+                    (
+                        0u32,
+                        Type::Tensor(TensorType {
+                            dtype: ScalarType::F32,
+                            shape: Some(ShapeSpec {
+                                dimensions: vec![
+                                    Dimension::Fixed(1),
+                                    Dimension::Symbolic("n".into()),
+                                    Dimension::Bounded {
+                                        symbol: "m".into(),
+                                        max_value: 1024,
+                                    },
+                                ],
+                            }),
                         }),
-                    })),
+                    ),
                     (1u32, Type::Index),
                 ],
                 operations: vec![
@@ -122,7 +125,12 @@ mod tests {
 
     #[test]
     fn empty_region() {
-        let region = Region { blocks: vec![Block { arguments: vec![], operations: vec![] }] };
+        let region = Region {
+            blocks: vec![Block {
+                arguments: vec![],
+                operations: vec![],
+            }],
+        };
         let text = to_text(&region);
         assert_eq!(parse_text(&text).unwrap(), region);
     }

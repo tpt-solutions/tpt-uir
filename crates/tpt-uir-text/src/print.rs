@@ -65,8 +65,14 @@ fn print_type(t: &Type) -> String {
 
 fn print_quant(q: &QuantizationParams) -> String {
     match q.scales {
-        Some(s) => format!("quant<{}, {}, {}, {}>", q.block_size, q.bytes_per_block, q.num_blocks, s),
-        None => format!("quant<{}, {}, {}>", q.block_size, q.bytes_per_block, q.num_blocks),
+        Some(s) => format!(
+            "quant<{}, {}, {}, {}>",
+            q.block_size, q.bytes_per_block, q.num_blocks, s
+        ),
+        None => format!(
+            "quant<{}, {}, {}>",
+            q.block_size, q.bytes_per_block, q.num_blocks
+        ),
     }
 }
 

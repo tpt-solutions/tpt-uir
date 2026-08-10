@@ -119,9 +119,7 @@ pub struct RegionBuilder {
 
 impl RegionBuilder {
     pub fn new() -> Self {
-        RegionBuilder {
-            blocks: Vec::new(),
-        }
+        RegionBuilder { blocks: Vec::new() }
     }
 
     pub fn block(mut self, block: Block) -> Self {
@@ -157,14 +155,12 @@ mod tests {
             .block(
                 BlockBuilder::new()
                     .arg(0, Type::Index)
-                    .op(
-                        OpBuilder::new(1)
-                            .name(OpName::parse("core.add").unwrap())
-                            .operand(0)
-                            .result(1)
-                            .attribute(Attribute::i64("axis", 0))
-                            .build(),
-                    )
+                    .op(OpBuilder::new(1)
+                        .name(OpName::parse("core.add").unwrap())
+                        .operand(0)
+                        .result(1)
+                        .attribute(Attribute::i64("axis", 0))
+                        .build())
                     .build(),
             )
             .build();

@@ -87,7 +87,12 @@ impl Parser {
                     match self.next() {
                         Some(Tok::Comma) => continue,
                         Some(Tok::RParen) => break,
-                        other => return Err(format!("expected ',' or ')' in block args, found {:?}", other)),
+                        other => {
+                            return Err(format!(
+                                "expected ',' or ')' in block args, found {:?}",
+                                other
+                            ))
+                        }
                     }
                 }
             } else {
@@ -126,8 +131,8 @@ impl Parser {
             self.expect(&Tok::Equal)?;
         }
         let opname_str = self.expect_str()?;
-        let op_name = OpName::parse(&opname_str)
-            .map_err(|_| format!("invalid op name '{}'", opname_str))?;
+        let op_name =
+            OpName::parse(&opname_str).map_err(|_| format!("invalid op name '{}'", opname_str))?;
         self.expect(&Tok::LParen)?;
         let mut operands = Vec::new();
         if !matches!(self.peek(), Some(Tok::RParen)) {
@@ -136,7 +141,12 @@ impl Parser {
                 match self.next() {
                     Some(Tok::Comma) => continue,
                     Some(Tok::RParen) => break,
-                    other => return Err(format!("expected ',' or ')' in operands, found {:?}", other)),
+                    other => {
+                        return Err(format!(
+                            "expected ',' or ')' in operands, found {:?}",
+                            other
+                        ))
+                    }
                 }
             }
         } else {
@@ -151,7 +161,12 @@ impl Parser {
                     match self.next() {
                         Some(Tok::Comma) => continue,
                         Some(Tok::RBrace) => break,
-                        other => return Err(format!("expected ',' or '}}' in attributes, found {:?}", other)),
+                        other => {
+                            return Err(format!(
+                                "expected ',' or '}}' in attributes, found {:?}",
+                                other
+                            ))
+                        }
                     }
                 }
             } else {
@@ -270,7 +285,9 @@ impl Parser {
                 match self.next() {
                     Some(Tok::Comma) => continue,
                     Some(Tok::Greater) => break,
-                    other => return Err(format!("expected ',' or '>' in shape, found {:?}", other)),
+                    other => {
+                        return Err(format!("expected ',' or '>' in shape, found {:?}", other))
+                    }
                 }
             }
         } else {

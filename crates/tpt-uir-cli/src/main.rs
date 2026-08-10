@@ -1,4 +1,5 @@
 //! `tpt-uir-cli` — validate, print, and convert TPT-UIR regions.
+#![doc = include_str!("../README.md")]
 
 use std::collections::HashMap;
 use std::process::exit;
@@ -37,8 +38,10 @@ fn load_region(path: &str, format: Option<Format>) -> Result<Region, String> {
     match fmt {
         Format::Postcard => tpt_uir_serde::deserialize_region(&bytes)
             .map_err(|e| format!("postcard decode error: {}", e)),
-        Format::Text => tpt_uir_text::parse_text(std::str::from_utf8(&bytes).map_err(|e| e.to_string())?)
-            .map_err(|e| e.to_string()),
+        Format::Text => {
+            tpt_uir_text::parse_text(std::str::from_utf8(&bytes).map_err(|e| e.to_string())?)
+                .map_err(|e| e.to_string())
+        }
         Format::Flatbuffers => tpt_uir_flatbuffers::from_flatbuffer(&bytes)
             .ok_or_else(|| "invalid flatbuffer region".to_string()),
     }
@@ -131,17 +134,32 @@ fn cmd_convert(args: &[String]) -> Result<(), String> {
             "--in" | "--out" | "--from-format" | "--to-format" => {
                 let key = args[i].clone();
                 i += 1;
-                let val = args.get(i).ok_or_else(|| format!("{} needs a value", key))?.clone();
+                let val = args
+                    .get(i)
+                    .ok_or_else(|| format!("{} needs a value", key))?
+                    .clone();
                 opts.insert(key, val);
             }
             other => return Err(format!("unexpected argument '{}'", other)),
         }
         i += 1;
     }
-    let input = opts.get("--in").ok_or("convert requires --in <file>")?.clone();
-    let output = opts.get("--out").ok_or("convert requires --out <file>")?.clone();
-    let from = opts.get("--from-format").map(|s| parse_format(s)).transpose()?;
-    let to = opts.get("--to-format").map(|s| parse_format(s)).transpose()?;
+    let input = opts
+        .get("--in")
+        .ok_or("convert requires --in <file>")?
+        .clone();
+    let output = opts
+        .get("--out")
+        .ok_or("convert requires --out <file>")?
+        .clone();
+    let from = opts
+        .get("--from-format")
+        .map(|s| parse_format(s))
+        .transpose()?;
+    let to = opts
+        .get("--to-format")
+        .map(|s| parse_format(s))
+        .transpose()?;
 
     let region = load_region(&input, from)?;
     save_region(&output, to, &region)?;

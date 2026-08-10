@@ -31,7 +31,11 @@ fn cli_validate_ok() {
     write_tptuir(&path, &region).unwrap();
 
     let out = bin().arg("validate").arg(&path).output().unwrap();
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 
     let _ = std::fs::remove_file(&path);
 }
@@ -71,7 +75,11 @@ fn cli_convert_roundtrip() {
         .arg("text")
         .output()
         .unwrap();
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 
     // text -> flatbuffers
     let out = bin()
@@ -86,7 +94,11 @@ fn cli_convert_roundtrip() {
         .arg("flatbuffers")
         .output()
         .unwrap();
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 
     // flatbuffers -> postcard and compare
     let fbs_bytes = std::fs::read(&fbs_path).unwrap();

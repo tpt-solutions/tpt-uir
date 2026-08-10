@@ -38,15 +38,25 @@ pub const Q8_0_BLOCK: (u32, u32) = (32, 34);
 /// Returns `None` on overflow.
 pub fn tensor_byte_size(dtype: ScalarType, num_elements: usize) -> Option<usize> {
     match dtype {
-        ScalarType::Q4_0 => quantized_blocks(num_elements, Q4_0_BLOCK.0 as usize, Q4_0_BLOCK.1 as usize),
-        ScalarType::Q4_1 => quantized_blocks(num_elements, Q4_1_BLOCK.0 as usize, Q4_1_BLOCK.1 as usize),
-        ScalarType::Q8_0 => quantized_blocks(num_elements, Q8_0_BLOCK.0 as usize, Q8_0_BLOCK.1 as usize),
+        ScalarType::Q4_0 => {
+            quantized_blocks(num_elements, Q4_0_BLOCK.0 as usize, Q4_0_BLOCK.1 as usize)
+        }
+        ScalarType::Q4_1 => {
+            quantized_blocks(num_elements, Q4_1_BLOCK.0 as usize, Q4_1_BLOCK.1 as usize)
+        }
+        ScalarType::Q8_0 => {
+            quantized_blocks(num_elements, Q8_0_BLOCK.0 as usize, Q8_0_BLOCK.1 as usize)
+        }
         other => num_elements.checked_mul(other.size_bytes()),
     }
 }
 
 /// Byte size for a quantized layout: `ceil(num_elements / block_size) * bytes_per_block`.
-fn quantized_blocks(num_elements: usize, block_size: usize, bytes_per_block: usize) -> Option<usize> {
+fn quantized_blocks(
+    num_elements: usize,
+    block_size: usize,
+    bytes_per_block: usize,
+) -> Option<usize> {
     let blocks = num_elements.div_ceil(block_size);
     blocks.checked_mul(bytes_per_block)
 }

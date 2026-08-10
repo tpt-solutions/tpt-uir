@@ -17,7 +17,10 @@ use tpt_uir_core::attr::AttributeValue as CoreAttrValue;
 use tpt_uir_core::ir::{Block as CoreBlock, Operation as CoreOp, Region as CoreRegion};
 use tpt_uir_core::op_name::OpName as CoreOpName;
 use tpt_uir_core::quant::QuantizationParams as CoreQuant;
-use tpt_uir_core::types::{Dimension as CoreDim, ScalarType as CoreScalar, ShapeSpec as CoreShape, TensorType as CoreTensor, Type as CoreType};
+use tpt_uir_core::types::{
+    Dimension as CoreDim, ScalarType as CoreScalar, ShapeSpec as CoreShape,
+    TensorType as CoreTensor, Type as CoreType,
+};
 
 // ---------------------------------------------------------------------------
 // Scalar type mapping
@@ -81,24 +84,27 @@ fn build_dim<'a>(fbb: &mut FlatBufferBuilder<'a>, d: &CoreDim) -> WIPOffset<Dime
             *max_value as u64,
         ),
     };
-    Dimension::create(fbb, &DimensionArgs {
-        kind,
-        size_: size,
-        symbol,
-        max_value,
-    })
+    Dimension::create(
+        fbb,
+        &DimensionArgs {
+            kind,
+            size_: size,
+            symbol,
+            max_value,
+        },
+    )
 }
 
 fn build_shape<'a>(fbb: &mut FlatBufferBuilder<'a>, s: &CoreShape) -> WIPOffset<ShapeSpec<'a>> {
-    let dim_offsets: Vec<WIPOffset<Dimension>> = s
-        .dimensions
-        .iter()
-        .map(|d| build_dim(fbb, d))
-        .collect();
+    let dim_offsets: Vec<WIPOffset<Dimension>> =
+        s.dimensions.iter().map(|d| build_dim(fbb, d)).collect();
     let dims = fbb.create_vector(&dim_offsets);
-    ShapeSpec::create(fbb, &ShapeSpecArgs {
-        dimensions: Some(dims),
-    })
+    ShapeSpec::create(
+        fbb,
+        &ShapeSpecArgs {
+            dimensions: Some(dims),
+        },
+    )
 }
 
 /// Build the inner `Type` union (the discriminant + optional wrapped table).
@@ -109,17 +115,23 @@ fn build_type_union<'a>(
 ) -> (Type, Option<WIPOffset<flatbuffers::UnionWIPOffset>>) {
     match ty {
         CoreType::Scalar(s) => {
-            let off = ScalarTypeWrapper::create(fbb, &ScalarTypeWrapperArgs {
-                scalar: scalar_to_fb(*s),
-            });
+            let off = ScalarTypeWrapper::create(
+                fbb,
+                &ScalarTypeWrapperArgs {
+                    scalar: scalar_to_fb(*s),
+                },
+            );
             (Type::ScalarTypeWrapper, Some(off.as_union_value()))
         }
         CoreType::Tensor(tt) => {
             let shape_off = tt.shape.as_ref().map(|sh| build_shape(fbb, sh));
-            let off = TensorType::create(fbb, &TensorTypeArgs {
-                dtype: scalar_to_fb(tt.dtype),
-                shape: shape_off,
-            });
+            let off = TensorType::create(
+                fbb,
+                &TensorTypeArgs {
+                    dtype: scalar_to_fb(tt.dtype),
+                    shape: shape_off,
+                },
+            );
             (Type::TensorType, Some(off.as_union_value()))
         }
         CoreType::Index => (Type::IndexMarker, None),
@@ -129,16 +141,22 @@ fn build_type_union<'a>(
 fn build_opname<'a>(fbb: &mut FlatBufferBuilder<'a>, n: &CoreOpName) -> WIPOffset<OpName<'a>> {
     let dialect = fbb.create_string(&n.dialect);
     let op = fbb.create_string(&n.op);
-    OpName::create(fbb, &OpNameArgs {
-        dialect: Some(dialect),
-        op: Some(op),
-    })
+    OpName::create(
+        fbb,
+        &OpNameArgs {
+            dialect: Some(dialect),
+            op: Some(op),
+        },
+    )
 }
 
 fn build_attr_value<'a>(
     fbb: &mut FlatBufferBuilder<'a>,
     v: &CoreAttrValue,
-) -> (AttributeValue, Option<WIPOffset<flatbuffers::UnionWIPOffset>>) {
+) -> (
+    AttributeValue,
+    Option<WIPOffset<flatbuffers::UnionWIPOffset>>,
+) {
     match v {
         CoreAttrValue::I64(x) => {
             let off = I64Value::create(fbb, &I64ValueArgs { v: *x });
@@ -156,10 +174,13 @@ fn build_attr_value<'a>(
         CoreAttrValue::Type(t) => {
             let (tt, v) = build_type_union(fbb, t);
             let type_type = if v.is_some() { tt } else { Type::NONE };
-            let tv = TypeValue::create(fbb, &TypeValueArgs {
-                type_type,
-                type_: v,
-            });
+            let tv = TypeValue::create(
+                fbb,
+                &TypeValueArgs {
+                    type_type,
+                    type_: v,
+                },
+            );
             (AttributeValue::TypeValue, Some(tv.as_union_value()))
         }
         CoreAttrValue::Shape(sh) => {
@@ -173,15 +194,22 @@ fn build_attr_value<'a>(
             (AttributeValue::OpNameValue, Some(wrapper.as_union_value()))
         }
         CoreAttrValue::Quantization(q) => {
-            let off = QuantizationParams::create(fbb, &QuantizationParamsArgs {
-                block_size: q.block_size,
-                bytes_per_block: q.bytes_per_block,
-                num_blocks: q.num_blocks,
-                has_scales: q.scales.is_some(),
-                scales: q.scales.unwrap_or(0),
-            });
-            let wrapper = QuantizationValue::create(fbb, &QuantizationValueArgs { quant: Some(off) });
-            (AttributeValue::QuantizationValue, Some(wrapper.as_union_value()))
+            let off = QuantizationParams::create(
+                fbb,
+                &QuantizationParamsArgs {
+                    block_size: q.block_size,
+                    bytes_per_block: q.bytes_per_block,
+                    num_blocks: q.num_blocks,
+                    has_scales: q.scales.is_some(),
+                    scales: q.scales.unwrap_or(0),
+                },
+            );
+            let wrapper =
+                QuantizationValue::create(fbb, &QuantizationValueArgs { quant: Some(off) });
+            (
+                AttributeValue::QuantizationValue,
+                Some(wrapper.as_union_value()),
+            )
         }
     }
 }
@@ -192,11 +220,14 @@ fn build_attribute<'a>(
 ) -> WIPOffset<Attribute<'a>> {
     let key = fbb.create_string(&a.key);
     let (value_type, value) = build_attr_value(fbb, &a.value);
-    Attribute::create(fbb, &AttributeArgs {
-        key: Some(key),
-        value_type,
-        value,
-    })
+    Attribute::create(
+        fbb,
+        &AttributeArgs {
+            key: Some(key),
+            value_type,
+            value,
+        },
+    )
 }
 
 fn build_operation<'a>(fbb: &mut FlatBufferBuilder<'a>, op: &CoreOp) -> WIPOffset<Operation<'a>> {
@@ -215,14 +246,17 @@ fn build_operation<'a>(fbb: &mut FlatBufferBuilder<'a>, op: &CoreOp) -> WIPOffse
         .map(|a| build_attribute(fbb, a))
         .collect();
     let attributes = fbb.create_vector(&attr_offsets);
-    Operation::create(fbb, &OperationArgs {
-        id: op.id,
-        op_name: Some(op_name),
-        operands: Some(operands),
-        results: Some(results),
-        regions: Some(regions),
-        attributes: Some(attributes),
-    })
+    Operation::create(
+        fbb,
+        &OperationArgs {
+            id: op.id,
+            op_name: Some(op_name),
+            operands: Some(operands),
+            results: Some(results),
+            regions: Some(regions),
+            attributes: Some(attributes),
+        },
+    )
 }
 
 fn build_block<'a>(fbb: &mut FlatBufferBuilder<'a>, b: &CoreBlock) -> WIPOffset<Block<'a>> {
@@ -232,11 +266,14 @@ fn build_block<'a>(fbb: &mut FlatBufferBuilder<'a>, b: &CoreBlock) -> WIPOffset<
         .map(|(vid, ty)| {
             let (tt, v) = build_type_union(fbb, ty);
             let type_type = if v.is_some() { tt } else { Type::NONE };
-            BlockArg::create(fbb, &BlockArgArgs {
-                value: *vid,
-                type_type,
-                type_: v,
-            })
+            BlockArg::create(
+                fbb,
+                &BlockArgArgs {
+                    value: *vid,
+                    type_type,
+                    type_: v,
+                },
+            )
         })
         .collect();
     let arguments = fbb.create_vector(&arg_offsets);
@@ -246,22 +283,28 @@ fn build_block<'a>(fbb: &mut FlatBufferBuilder<'a>, b: &CoreBlock) -> WIPOffset<
         .map(|op| build_operation(fbb, op))
         .collect();
     let operations = fbb.create_vector(&op_offsets);
-    Block::create(fbb, &BlockArgs {
-        arguments: Some(arguments),
-        operations: Some(operations),
-    })
+    Block::create(
+        fbb,
+        &BlockArgs {
+            arguments: Some(arguments),
+            operations: Some(operations),
+        },
+    )
 }
 
-fn build_region_inner<'a>(fbb: &mut FlatBufferBuilder<'a>, r: &CoreRegion) -> WIPOffset<Region<'a>> {
-    let block_offsets: Vec<WIPOffset<Block>> = r
-        .blocks
-        .iter()
-        .map(|b| build_block(fbb, b))
-        .collect();
+fn build_region_inner<'a>(
+    fbb: &mut FlatBufferBuilder<'a>,
+    r: &CoreRegion,
+) -> WIPOffset<Region<'a>> {
+    let block_offsets: Vec<WIPOffset<Block>> =
+        r.blocks.iter().map(|b| build_block(fbb, b)).collect();
     let blocks = fbb.create_vector(&block_offsets);
-    Region::create(fbb, &RegionArgs {
-        blocks: Some(blocks),
-    })
+    Region::create(
+        fbb,
+        &RegionArgs {
+            blocks: Some(blocks),
+        },
+    )
 }
 
 /// Serialise a [`tpt_uir_core::Region`] into a FlatBuffers byte vector.
@@ -300,7 +343,9 @@ fn read_shape(s: ShapeSpec) -> CoreShape {
 fn read_type(t: TypeValue) -> CoreType {
     match t.type_type().0 {
         1 => {
-            let w = t.type__as_scalar_type_wrapper().expect("ScalarTypeWrapper union");
+            let w = t
+                .type__as_scalar_type_wrapper()
+                .expect("ScalarTypeWrapper union");
             CoreType::Scalar(scalar_from_fb(w.scalar()))
         }
         2 => {
@@ -354,7 +399,11 @@ fn read_attr_value(a: Attribute) -> CoreAttrValue {
                 block_size: q.block_size(),
                 bytes_per_block: q.bytes_per_block(),
                 num_blocks: q.num_blocks(),
-                scales: if q.has_scales() { Some(q.scales()) } else { None },
+                scales: if q.has_scales() {
+                    Some(q.scales())
+                } else {
+                    None
+                },
             })
         }
         _ => panic!("Attribute with NONE union discriminant"),
@@ -369,7 +418,10 @@ fn read_attribute(a: Attribute) -> tpt_uir_core::attr::Attribute {
 }
 
 fn read_operation(op: Operation) -> CoreOp {
-    let operands = op.operands().map(|v| v.iter().collect()).unwrap_or_default();
+    let operands = op
+        .operands()
+        .map(|v| v.iter().collect())
+        .unwrap_or_default();
     let results = op.results().map(|v| v.iter().collect()).unwrap_or_default();
     let regions = op
         .regions()
@@ -381,7 +433,10 @@ fn read_operation(op: Operation) -> CoreOp {
         .unwrap_or_default();
     CoreOp {
         id: op.id(),
-        op_name: op.op_name().map(read_opname).unwrap_or_else(|| CoreOpName::new("", "")),
+        op_name: op
+            .op_name()
+            .map(read_opname)
+            .unwrap_or_else(|| CoreOpName::new("", "")),
         operands,
         results,
         regions,

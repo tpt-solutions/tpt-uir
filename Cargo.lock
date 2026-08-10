@@ -507,6 +507,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tpt-uir-examples"
+version = "0.1.0"
+dependencies = [
+ "tpt-uir-core",
+ "tpt-uir-dialects",
+ "tpt-uir-ffi",
+ "tpt-uir-flatbuffers",
+ "tpt-uir-serde",
+ "tpt-uir-text",
+]
+
+[[package]]
 name = "tpt-uir-ffi"
 version = "0.1.0"
 dependencies = [

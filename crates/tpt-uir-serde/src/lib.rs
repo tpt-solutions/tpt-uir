@@ -155,8 +155,7 @@ mod tests {
             0x05, 0x07, b't', b'p', b't', b'_', b'g', b'p', b'u', 0x06, b'l', b'a', b'u', b'n',
             b'c', b'h',
         ];
-        let decoded: tpt_uir_core::attr::AttributeValue =
-            postcard::from_bytes(fixture).unwrap();
+        let decoded: tpt_uir_core::attr::AttributeValue = postcard::from_bytes(fixture).unwrap();
         assert_eq!(
             decoded,
             tpt_uir_core::attr::AttributeValue::OpName(

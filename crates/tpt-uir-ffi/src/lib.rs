@@ -14,8 +14,13 @@ use tpt_uir_core::ir::Region;
 use tpt_uir_core::validate_region;
 
 /// Opaque handle owning a deserialized [`Region`].
+///
+/// `strings` caches NUL-terminated `CString`s handed out by the accessors so the
+/// returned pointers stay valid until [`tpt_uir_free`] (the documented lifetime
+/// contract), without requiring the underlying `String`s to be NUL-terminated.
 struct Handle {
     region: Region,
+    strings: std::cell::RefCell<Vec<std::ffi::CString>>,
 }
 
 /// Deserialize a postcard-encoded region from `data[0..len]` into a new handle.
@@ -38,7 +43,10 @@ pub unsafe extern "C" fn tpt_uir_load(
     let slice = std::slice::from_raw_parts(data, len);
     match tpt_uir_serde::deserialize_region(slice) {
         Ok(region) => {
-            let handle = Box::new(Handle { region });
+            let handle = Box::new(Handle {
+                region,
+                strings: std::cell::RefCell::new(Vec::new()),
+            });
             *out_handle = Box::into_raw(handle) as *mut c_void;
             0
         }
@@ -120,7 +128,11 @@ pub unsafe extern "C" fn tpt_uir_op_dialect(
         .and_then(|b| b.operations.get(op_index))
     {
         Some(op) => {
-            *out = op.op_name.dialect.as_ptr() as *const c_char;
+            let cs = std::ffi::CString::new(op.op_name.dialect.as_bytes())
+                .expect("op dialect must not contain NUL");
+            let ptr = cs.as_ptr();
+            h.strings.borrow_mut().push(cs);
+            *out = ptr;
             0
         }
         None => 1,
@@ -151,7 +163,11 @@ pub unsafe extern "C" fn tpt_uir_op_op(
         .and_then(|b| b.operations.get(op_index))
     {
         Some(op) => {
-            *out = op.op_name.op.as_ptr() as *const c_char;
+            let cs =
+                std::ffi::CString::new(op.op_name.op.as_bytes()).expect("op must not contain NUL");
+            let ptr = cs.as_ptr();
+            h.strings.borrow_mut().push(cs);
+            *out = ptr;
             0
         }
         None => 1,

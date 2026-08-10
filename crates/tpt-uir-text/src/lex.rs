@@ -2,14 +2,14 @@
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Tok {
-    Caret,    // ^
-    Hash,     // #
-    Percent,  // %
-    Colon,    // :
-    Equal,    // =
-    Comma,    // ,
-    Less,     // <
-    Greater,  // >
+    Caret,   // ^
+    Hash,    // #
+    Percent, // %
+    Colon,   // :
+    Equal,   // =
+    Comma,   // ,
+    Less,    // <
+    Greater, // >
     LParen,
     RParen,
     LBrace,
@@ -166,20 +166,16 @@ fn lex_number(src: &str, start: usize) -> Result<(Tok, usize), LexError> {
         while i < bytes.len() && bytes[i].is_ascii_digit() {
             i += 1;
         }
-        let f: f64 = src[start..i]
-            .parse()
-            .map_err(|_| LexError {
-                pos: start,
-                message: "invalid float".to_string(),
-            })?;
+        let f: f64 = src[start..i].parse().map_err(|_| LexError {
+            pos: start,
+            message: "invalid float".to_string(),
+        })?;
         Ok((Tok::Float(f), i))
     } else {
-        let v: i64 = src[int_start..i]
-            .parse()
-            .map_err(|_| LexError {
-                pos: start,
-                message: "invalid integer".to_string(),
-            })?;
+        let v: i64 = src[int_start..i].parse().map_err(|_| LexError {
+            pos: start,
+            message: "invalid integer".to_string(),
+        })?;
         Ok((Tok::Int(v), i))
     }
 }
