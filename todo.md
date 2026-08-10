@@ -144,7 +144,7 @@
 
 > These tasks live in the `tpt-gpu` and `tpt-crucible` repos — NOT in this `tpt-uir` repo. They are listed here for completeness but cannot be implemented here. The `tpt-uir` side (dialect ops, validation, serialization) that they depend on is complete.
 
-> **Status (2026-08-10):** the `tpt-gpu` adapter is now implemented in `tpt-gpu/crates/tpt-gpu-uir-adapter` (see `tpt-gpu/todo.md` Phase 16 for full tracking). The `tpt-crucible` adapter is still pending.
+> **Status (2026-08-10):** the `tpt-gpu` adapter is implemented in `tpt-gpu/crates/tpt-gpu-uir-adapter` (see `tpt-gpu/todo.md` Phase 16 for full tracking). The `tpt-crucible` adapter is now implemented in `tpt-crucible/crates/tpt-crucible-uir-adapter`.
 
 ### tpt-gpu Adapter
 - [x] Add `tpt-uir-dialects` as a dependency in `tpt-gpu` (via `crates/tpt-gpu-uir-adapter`, path deps to the sibling `tpt-uir` workspace)
@@ -155,44 +155,48 @@
 - [x] Wired into `tpt-gpu-kernelgen` (`generate --output-tptuir`) and `tpt-gpu-runtime` (`Device::load_module_tptuir`) — see `tpt-gpu/todo.md` Phase 16
 
 ### tpt-crucible Adapter
-- [ ] Add `tpt-uir-dialects` as a dependency in `tpt-crucible`
-- [ ] Implement ComputationalGraph → TPT-UIR converter: wrap graph as single `Region` containing one `Block`
-- [ ] Use Crucible dialect ops (`tpt_crucible.*`) for all emitted operations
-- [ ] Emit shapes as `Dimension::Fixed` only
+- [x] Add `tpt-uir-dialects` as a dependency in `tpt-crucible`
+- [x] Implement ComputationalGraph → TPT-UIR converter: wrap graph as single `Region` containing one `Block`
+- [x] Use Crucible dialect ops (`tpt_crucible.*`) for all emitted operations
+- [x] Emit shapes as `Dimension::Fixed` only
 
 ### Round-Trip Validation
 - [x] Write `test_roundtrip_gpu()`: load Llama-3 block (GGUF fixture + hand-authored multi-block/rich kernels) → GPU adapter → TPT-UIR → back → assert lossless (8 adapter tests pass; kernelgen/runtime integration tests pass)
-- [ ] Write `test_roundtrip_crucible()`: load Llama-3 block → Crucible adapter → TPT-UIR → back → assert lossless (Crucible adapter not yet implemented)
-- [ ] Both round-trip tests pass — GPU done; Crucible adapter pending
+- [x] Write `test_roundtrip_crucible()`: load Llama-3 block → Crucible adapter → TPT-UIR → back → assert lossless (implemented in `tpt-crucible/crates/tpt-crucible-uir-adapter`; 9 adapter tests pass incl. lossless graph round-trip, postcard serialization, and `.tptuir` file round-trip)
+- [x] Both round-trip tests pass — GPU and Crucible adapters implemented
 - [x] Fix any lossless failures (GPU path is lossless; no fixes required)
 
 ---
 
-## Phase 4 — Prover Bridge (Weeks 7–8) ⛔ OUT OF REPO
+## Phase 4 — Prover Bridge (Weeks 7–8) ✅ DONE (in tpt-telos)
 
-> These tasks live in the `tpt-telos` repo — NOT in this `tpt-uir` repo. The `tpt-uir` side they consume (memory dialect ops, `Dimension::Symbolic` extraction, serialization) is complete.
+> Implemented in `tpt-telos/crates/tpt-telos-uir-bridge` (see that repo's `crates/tpt-telos-uir-bridge/README.md`
+> and the "TPT-UIR Prover Bridge" section of the `tpt-telos` README). Verified by
+> `cargo test -p tpt-telos-uir-bridge --features uir` (8 unit + 3 CLI + 1 doctest, all green).
+> The `tpt-uir` side it consumes (memory dialect ops, `Dimension::Symbolic` extraction,
+> postcard serialization) is complete.
 
 ### tpt-telos Setup
-- [ ] Add `tpt-uir-dialects` and `tpt-uir-serde` as dependencies in `tpt-telos`
+- [x] Add `tpt-uir-dialects` and `tpt-uir-serde` as dependencies in `tpt-telos` (path deps in `crates/tpt-telos-uir-bridge`)
 
 ### TPT-UIR Consumer
-- [ ] Walk a `Region`, extract all `tpt_memory.alloc` ops and their `size_bytes` `ValueId` attributes
-- [ ] Extract `Dimension::Symbolic` variables from tensor types across the region
+- [x] Walk a `Region`, extract all `tpt_memory.alloc` ops and their `size_bytes` `ValueId` attributes (`extract_allocs`)
+- [x] Extract `Dimension::Symbolic` variables from tensor types across the region (`extract_symbolic_dims`)
 
 ### Z3 Integration
-- [ ] Map extracted `Dimension::Symbolic` names → Z3 symbolic integer variables
-- [ ] Map `mem.alloc` `size_bytes` → Z3 integer expressions
+- [x] Map extracted `Dimension::Symbolic` names → Z3 symbolic integer variables (FM `Linear`/`Int` vars; `z3` feature builds Z3 `Int` ASTs)
+- [x] Map `mem.alloc` `size_bytes` → Z3 integer expressions (`tensor_byte_expr` → `SizeExpr`)
 
 ### Memory Bound Proof
-- [ ] Implement proof query: within any `mem.scope`, sum of `mem.alloc` sizes ≤ target hardware physical memory limit
-- [ ] Integrate with existing `tpt-telos` prover API (or `z3` crate bindings)
-- [ ] Return `ProofResult::Valid` or `ProofResult::Counterexample(model)`
+- [x] Implement proof query: within any `mem.scope`, sum of `mem.alloc` sizes ≤ target hardware physical memory limit (`prove_memory_bounds`)
+- [x] Integrate with existing `tpt-telos` prover API (Fourier-Motzkin `model`/`unsat`, plus `z3` feature for nonlinear)
+- [x] Return `ProofResult::Valid` or `ProofResult::Counterexample(model)`
 
 ### End-to-End Verification
-- [ ] Run first formal memory proof on a simple `tpt-crucible` model (all `Fixed` dims, static shapes)
-- [ ] Confirm: valid model → `ProofResult::Valid`
-- [ ] Confirm: over-budget model → `ProofResult::Counterexample` with interpretable witness
-- [ ] Document the full proof workflow in `tpt-telos` README
+- [x] Run first formal memory proof on a simple `tpt-crucible` model (all `Fixed` dims, static shapes)
+- [x] Confirm: valid model → `ProofResult::Valid`
+- [x] Confirm: over-budget model → `ProofResult::Counterexample` with interpretable witness
+- [x] Document the full proof workflow in `tpt-telos` README
 
 ---
 
