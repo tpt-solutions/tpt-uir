@@ -14,3 +14,18 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - `memory` dialect (`MemOp`) for memory operations.
 - `ValidateDialect` trait for dialect-level validation.
 - Analysis passes, including liveness.
+
+### Added
+- `ValidateDialect` gained default helpers `dialect_prefix`, `current_version`,
+  `validate_versions`, and `validate_all`; `dialect_prefix` is now implemented
+  for `GpuDialect` (`"tpt_gpu"`) and `CrucibleDialect` (`"tpt_crucible"`).
+- Documented the dialect-versioning migration story in `README.md`.
+
+### Fixed
+- Corrected the README example, which previously called a non-existent
+  `GpuDialect::op(GpuOp::Launch)` API. It now uses `GpuOp::build` with
+  `TPT_GPU_LAUNCH`.
+
+### Changed
+- Crate-level documentation now includes `README.md` via `#![doc = include_str!("../README.md")]`
+  so `cargo test --doc` exercises the README examples.

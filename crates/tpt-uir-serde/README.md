@@ -1,7 +1,12 @@
 # tpt-uir-serde
 
-Zero-copy (de)serialization for the **TPT Unified Intermediate Representation
+Compact binary (de)serialization for the **TPT Unified Intermediate Representation
 (TPT-UIR)** using [postcard](https://docs.rs/postcard).
+
+Postcard produces a small, self-describing wire format suitable for storage and
+transport. It is *not* zero-copy: decoding allocates and deserializes into owned
+`Operation`/`Region` values. For a true zero-copy, memory-mapped format, see the
+[`tpt-uir-flatbuffers`](../tpt-uir-flatbuffers) crate.
 
 This crate builds on [`tpt-uir-core`](../tpt-uir-core) (with its `serde`
 feature enabled) and provides:

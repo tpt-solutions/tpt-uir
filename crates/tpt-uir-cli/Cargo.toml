@@ -1,0 +1,29 @@
+[package]
+name = "tpt-uir-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Command-line tool for validating, printing, and converting TPT-UIR"
+license = "MIT OR Apache-2.0"
+authors = ["TPT Solutions"]
+repository = "https://github.com/tpt-solutions/tpt-uir"
+homepage = "https://github.com/tpt-solutions/tpt-uir"
+documentation = "https://docs.rs/tpt-uir-cli"
+keywords = ["uir", "ir", "cli", "compiler"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "tpt-uir-cli"
+path = "src/main.rs"
+
+[dependencies]
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
+tpt-uir-serde = { path = "../tpt-uir-serde", version = "0.1.0", features = ["std"] }
+tpt-uir-text = { path = "../tpt-uir-text", version = "0.1.0" }
+tpt-uir-flatbuffers = { path = "../tpt-uir-flatbuffers", version = "0.1.0" }
+tpt-uir-dialects = { path = "../tpt-uir-dialects", version = "0.1.0" }
+
+[dev-dependencies]
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
+tpt-uir-serde = { path = "../tpt-uir-serde", version = "0.1.0", features = ["std"] }
+tpt-uir-text = { path = "../tpt-uir-text", version = "0.1.0" }
+tpt-uir-flatbuffers = { path = "../tpt-uir-flatbuffers", version = "0.1.0" }

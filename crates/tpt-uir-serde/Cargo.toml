@@ -2,7 +2,7 @@
 name = "tpt-uir-serde"
 version = "0.1.0"
 edition = "2021"
-description = "Zero-copy serialization for TPT-UIR (postcard)"
+description = "Compact binary (de)serialization for TPT-UIR (postcard)"
 license = "MIT OR Apache-2.0"
 authors = ["TPT Solutions"]
 repository = "https://github.com/tpt-solutions/tpt-uir"

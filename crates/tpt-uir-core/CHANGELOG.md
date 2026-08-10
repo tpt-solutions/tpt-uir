@@ -15,3 +15,17 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Attributes and metadata.
 - `no_std` support via an `alloc` dependency.
 - Optional `serde` feature for (de)serialization of IR types.
+
+### Added
+- `builder` module: fluent `OpBuilder`, `BlockBuilder`, and `RegionBuilder` construction API.
+- `quant` module: `QuantizationParams` layout descriptor and `tensor_byte_size`
+  helper using checked arithmetic with GGUF-correct block sizes for `Q4_0`/`Q4_1`/`Q8_0`.
+- `AttributeValue::Quantization(QuantizationParams)` variant, appended as the last
+  enum variant to preserve postcard wire-compatibility with existing indices.
+- `Attribute::quantization` constructor.
+- `Attribute::dialect_version` / `Attribute::op_dialect_version` constructors
+  (stored as `i64`, no new wire surface).
+
+### Changed
+- Crate-level documentation now includes `README.md` via `#![doc = include_str!("../README.md")]`
+  so `cargo test --doc` exercises the README examples.

@@ -1,0 +1,25 @@
+[package]
+name = "tpt-uir-examples"
+version = "0.1.0"
+edition = "2021"
+description = "Usage examples and end-to-end tests for TPT-UIR"
+license = "MIT OR Apache-2.0"
+authors = ["TPT Solutions"]
+repository = "https://github.com/tpt-solutions/tpt-uir"
+homepage = "https://github.com/tpt-solutions/tpt-uir"
+publish = false
+
+[dependencies]
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
+tpt-uir-dialects = { path = "../tpt-uir-dialects", version = "0.1.0" }
+tpt-uir-serde = { path = "../tpt-uir-serde", version = "0.1.0", features = ["std"] }
+tpt-uir-flatbuffers = { path = "../tpt-uir-flatbuffers", version = "0.1.0" }
+tpt-uir-text = { path = "../tpt-uir-text", version = "0.1.0" }
+tpt-uir-ffi = { path = "../tpt-uir-ffi", version = "0.1.0" }
+
+[dev-dependencies]
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
+tpt-uir-dialects = { path = "../tpt-uir-dialects", version = "0.1.0" }
+tpt-uir-serde = { path = "../tpt-uir-serde", version = "0.1.0", features = ["std"] }
+tpt-uir-flatbuffers = { path = "../tpt-uir-flatbuffers", version = "0.1.0" }
+tpt-uir-text = { path = "../tpt-uir-text", version = "0.1.0" }

@@ -1,6 +1,7 @@
 use alloc::string::String;
 
 use crate::op_name::OpName;
+use crate::quant::QuantizationParams;
 use crate::types::{ShapeSpec, Type};
 
 /// The payload of a named attribute attached to an [`crate::Operation`].
@@ -13,6 +14,9 @@ pub enum AttributeValue {
     Type(Type),
     Shape(ShapeSpec),
     OpName(OpName),
+    /// Quantization layout metadata. Appended **last** so the postcard wire
+    /// indices of all earlier variants are preserved (wire-compatible).
+    Quantization(QuantizationParams),
 }
 
 /// A named attribute: a key paired with a typed value.
@@ -50,5 +54,25 @@ impl Attribute {
             key: key.into(),
             value: AttributeValue::Shape(value),
         }
+    }
+
+    pub fn quantization(key: impl Into<String>, value: QuantizationParams) -> Self {
+        Attribute {
+            key: key.into(),
+            value: AttributeValue::Quantization(value),
+        }
+    }
+
+    /// Convenience constructor for a dialect-version attribute (key
+    /// `"dialect_version"`). Stored as [`AttributeValue::I64`]; no new wire
+    /// surface is introduced.
+    pub fn dialect_version(version: i64) -> Self {
+        Attribute::i64("dialect_version", version)
+    }
+
+    /// Convenience constructor for an op-level dialect-version attribute (key
+    /// `"op_dialect_version"`). Stored as [`AttributeValue::I64`].
+    pub fn op_dialect_version(version: i64) -> Self {
+        Attribute::i64("op_dialect_version", version)
     }
 }

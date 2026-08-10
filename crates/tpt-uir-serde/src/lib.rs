@@ -1,4 +1,5 @@
 #![no_std]
+#![doc = include_str!("../README.md")]
 extern crate alloc;
 
 #[cfg(feature = "std")]
@@ -136,5 +137,35 @@ mod tests {
         let back = read_tptuir(&path).unwrap();
         assert_eq!(region, back);
         let _ = std::fs::remove_file(&path);
+    }
+
+    // Wire-compatibility regression test.
+    //
+    // The `Quantization` variant was appended as the LAST `AttributeValue`
+    // variant. Postcard encodes enum variants by numeric index, so the indices
+    // of every pre-existing variant (I64=0 ... OpName=5) must stay fixed. This
+    // fixture encodes `AttributeValue::OpName("tpt_gpu.launch")` using only
+    // those pre-change indices (variant 5 = 0x05, then two length-prefixed
+    // postcard strings). It must still decode on the current code.
+    #[test]
+    fn wire_compat_attr_value_opname() {
+        // 0x05 = variant index 5 (OpName)
+        // 0x07 + "tpt_gpu", 0x06 + "launch"
+        let fixture: &[u8] = &[
+            0x05, 0x07, b't', b'p', b't', b'_', b'g', b'p', b'u', 0x06, b'l', b'a', b'u', b'n',
+            b'c', b'h',
+        ];
+        let decoded: tpt_uir_core::attr::AttributeValue =
+            postcard::from_bytes(fixture).unwrap();
+        assert_eq!(
+            decoded,
+            tpt_uir_core::attr::AttributeValue::OpName(
+                tpt_uir_core::OpName::parse("tpt_gpu.launch").unwrap()
+            )
+        );
+
+        // Round-trips to identical bytes (proves the index is stable).
+        let reencoded = postcard::to_allocvec(&decoded).unwrap();
+        assert_eq!(reencoded, fixture);
     }
 }

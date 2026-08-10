@@ -1,14 +1,19 @@
 #![no_std]
+#![doc = include_str!("../README.md")]
 extern crate alloc;
 
 pub mod attr;
+pub mod builder;
 pub mod ir;
 pub mod op_name;
+pub mod quant;
 pub mod types;
 
 pub use attr::*;
+pub use builder::*;
 pub use ir::*;
 pub use op_name::*;
+pub use quant::*;
 pub use types::*;
 
 #[cfg(test)]

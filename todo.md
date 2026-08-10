@@ -207,3 +207,84 @@
 - [x] `cargo build --workspace --no-default-features` — confirms `no_std` integrity
 - [x] `cargo fmt --check` — formatted
 - [x] Add GitHub Actions workflow (or equivalent CI) running the above on every push
+
+---
+
+## Phase 5 — Spec-Completion: Quick-Win Doc/Adoption Fixes 🚧 IN PROGRESS
+
+> Full design: `C:\Users\phill\.claude\plans\review-platform-for-bugs-atomic-elephant.md`.
+> Follow-up from a platform review: closes the gap between `spec.txt` and what's
+> actually implemented, without breaking the `OpName` constants or postcard wire format
+> that `tpt-gpu`/`tpt-crucible`/`tpt-telos` already consume.
+
+- [ ] Fix broken example in `crates/tpt-uir-dialects/README.md` (calls nonexistent `GpuDialect::op(GpuOp::Launch)`)
+- [ ] Reword `crates/tpt-uir-serde/README.md` + its `Cargo.toml` `description`: "zero-copy" → "compact binary (de)serialization" (postcard isn't zero-copy; point at `tpt-uir-flatbuffers` for that)
+- [ ] Copy `LICENSE-MIT`/`LICENSE-APACHE` from workspace root into each `crates/*/` directory (existing README links are dead)
+- [ ] Add `#![doc = include_str!("../README.md")]` to each library crate's `src/lib.rs` so `cargo test --doc` exercises README samples
+- [ ] Update each touched crate's `CHANGELOG.md` (amend existing `0.1.0` entry — not yet published)
+
+## Phase 6 — Core IR Additive Changes (`tpt-uir-core`, `tpt-uir-dialects`)
+
+- [ ] `RegionBuilder`/`BlockBuilder`/`OpBuilder` fluent construction API — `crates/tpt-uir-core/src/builder.rs`
+- [ ] `QuantizationParams` + `tensor_byte_size()` helper (checked arithmetic, GGUF-correct block sizes for Q4_0/Q4_1/Q8_0) — `crates/tpt-uir-core/src/quant.rs`
+- [ ] Append `AttributeValue::Quantization(QuantizationParams)` as the **last** enum variant (postcard wire-compat) + `Attribute::quantization()` ctor — `crates/tpt-uir-core/src/attr.rs`
+- [ ] `Attribute::dialect_version()` / `op_dialect_version()` (reuses `AttributeValue::I64`, no new wire surface) — `crates/tpt-uir-core/src/attr.rs`
+- [ ] Extend `ValidateDialect` trait with `dialect_prefix()`, `current_version()`, `validate_versions()`, `validate_all()` default methods; implement `dialect_prefix()` for `GpuDialect`/`CrucibleDialect` — `crates/tpt-uir-dialects/src/validate.rs`
+- [ ] Document dialect-versioning migration story in `crates/tpt-uir-dialects/README.md`
+- [ ] Postcard wire-compatibility regression test: pre-change byte fixture still decodes after the `Quantization` variant is appended
+
+## Phase 7 — FlatBuffers Zero-Copy Format + FFI (spec.txt §6)
+
+> Depends on Phase 6 (`AttributeValue::Quantization` must exist for the schema).
+
+- [ ] Author `schema/tpt_uir.fbs` mirroring `Operation`/`Block`/`Region`/`Type`/`Attribute`/`OpName`/`Dimension`/`QuantizationParams` (wrapper-table + union pattern) — `crates/tpt-uir-flatbuffers/`
+- [ ] Check in `flatc`-generated Rust code under `src/generated/`; pin exact `flatc` version in `schema/README.md` (no `flatc` in CI — codegen is manual, not build.rs)
+- [ ] `to_flatbuffer()`/`from_flatbuffer()` conversion + `root_as_region()` zero-copy accessor — `src/convert.rs`
+- [ ] Feature-gated `mmap` module: `open_mmap()` → plain `memmap2::Mmap`, read via `root_as_region(&mmap[..])` — `src/mmap.rs`
+- [ ] `tpt-uir-flatbuffers` stays `no_std` by default (`flatbuffers` crate with `default-features = false`)
+- [ ] New `tpt-uir-ffi` crate (`crate-type = ["cdylib", "rlib", "staticlib"]`): opaque-handle C API — `tpt_uir_load`, `tpt_uir_free`, `tpt_uir_block_count`, `tpt_uir_op_count`, `tpt_uir_op_dialect`/`tpt_uir_op_op`, `tpt_uir_op_operand(_count)`, `tpt_uir_validate_ssa`, `tpt_uir_validate_dialect` (read-only for this pass)
+- [ ] `build.rs` uses the `cbindgen` library crate (not the CLI binary) to emit `include/tpt_uir_ffi.h`
+
+## Phase 8 — Textual IR Format (`crates/tpt-uir-text`)
+
+> Depends on Phase 6 (`quant<...>` grammar production needs `QuantizationParams`).
+
+- [ ] Hand-written lexer + recursive-descent parser (no `nom`/`pest`) — `src/lex.rs`, `src/parse.rs`
+- [ ] Grammar: `^bb`-blocks, `#id: %res = "op"(%operands) {attrs} [regions]`, `tensor<...>`, `shape<...>`, `quant<block_size,bytes_per_block[,scales]>`
+- [ ] `to_text(region) -> String`, `parse_text(src) -> Result<Region, ParseError>`, `Pretty<'a>(&'a Region): Display` — `src/print.rs`, `src/lib.rs`
+- [ ] Round-trip tests: nested regions, `Quantization` attribute, `dialect_version` attribute, empty block/region edge cases
+
+## Phase 9 — CLI Tool (`crates/tpt-uir-cli`)
+
+> Depends on Phases 6–8.
+
+- [ ] `validate <file> [--dialect gpu|crucible]` subcommand (SSA always; `validate_all` when `--dialect` given)
+- [ ] `print <file>` subcommand (pretty-print via `tpt-uir-text`)
+- [ ] `convert --in <file> --out <file> [--from-format ...] [--to-format postcard|text|flatbuffers]` subcommand
+- [ ] CLI integration tests (`tests/cli.rs`) against fixtures
+
+## Phase 10 — Examples Crate + Root README (adoption)
+
+> Depends on Phases 6–9; written last to demonstrate the final feature set.
+
+- [ ] New `crates/tpt-uir-examples/` (`publish = false`), depends on every other workspace crate except `tpt-uir-cli`
+- [ ] `examples/quickstart.rs` — `RegionBuilder` → `validate_all` → `Quantization`/`dialect_version` attrs → postcard + FlatBuffers serialization → text pretty-print
+- [ ] `examples/crucible_static_shapes.rs` — Crucible/`Fixed`-shape contrast case
+- [ ] `tests/end_to_end.rs` — full pipeline as assertions (build → validate → serialize → deserialize → print → parse → equality)
+- [ ] Root `README.md` — architecture summary, crate table, downstream consumers, CI badge, license section
+
+## Spec-Completion Quality Gates (Phases 5–10)
+
+- [ ] `cargo fmt --all -- --check`
+- [ ] `cargo clippy --workspace --all-targets -- -D warnings`
+- [ ] `cargo test --workspace`
+- [ ] `cargo test --doc --workspace`
+- [ ] `cargo build --workspace --no-default-features` (confirms `no_std` integrity, incl. `tpt-uir-flatbuffers`)
+- [ ] `cargo run -p tpt-uir-cli -- validate/print/convert` against example fixtures
+- [ ] `cargo package -p <crate> --list` for every publishable crate (confirms `LICENSE-*` files included)
+
+### Explicitly out of scope (backlog, not tracked as phases here)
+- Dynamic control-flow / worst-case memory-scope-overlap handling for Crucible (`spec.txt` §8) — lives in sibling `tpt-telos` repo, not this one
+- Prebuilt cross-platform `tpt-uir-ffi` binary release pipeline (GitHub Actions release matrix) — release-engineering scope, separate from the library/FFI code
+- FFI/CLI write-and-construct-IR capability (read/validate/inspect only for now)
+- `cargo semver-checks` in CI — add once there's a released baseline to check against
