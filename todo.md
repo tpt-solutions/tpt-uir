@@ -144,11 +144,15 @@
 
 > These tasks live in the `tpt-gpu` and `tpt-crucible` repos — NOT in this `tpt-uir` repo. They are listed here for completeness but cannot be implemented here. The `tpt-uir` side (dialect ops, validation, serialization) that they depend on is complete.
 
+> **Status (2026-08-10):** the `tpt-gpu` adapter is now implemented in `tpt-gpu/crates/tpt-gpu-uir-adapter` (see `tpt-gpu/todo.md` Phase 16 for full tracking). The `tpt-crucible` adapter is still pending.
+
 ### tpt-gpu Adapter
-- [ ] Add `tpt-uir-dialects` as a dependency in `tpt-gpu`
-- [ ] Implement TPTIR → TPT-UIR converter: map SSA blocks → `Block`, functions → `Region`
-- [ ] Use GPU dialect ops (`tpt_gpu.*`) for all emitted operations
-- [ ] Emit shapes as `Dimension::Bounded` or `None`
+- [x] Add `tpt-uir-dialects` as a dependency in `tpt-gpu` (via `crates/tpt-gpu-uir-adapter`, path deps to the sibling `tpt-uir` workspace)
+- [x] Implement TPTIR → TPT-UIR converter: map SSA blocks → `Block`, functions → `Region` (`from_tptir` in `tpt-gpu-uir-adapter`)
+- [x] Use GPU dialect ops (`tpt_gpu.*` / `core.*`) for all emitted operations
+- [x] Emit shapes as `Dimension::Bounded` or `None` (GPU invariant enforced via `GpuOp::build` + `GpuDialect::validate`)
+- [x] Reverse converter `to_tptir` + GGUF→TPTIR path (`gguf` module: `parse_gguf_bytes` + `gguf_to_tptir`) for a real Llama-3 block
+- [x] Wired into `tpt-gpu-kernelgen` (`generate --output-tptuir`) and `tpt-gpu-runtime` (`Device::load_module_tptuir`) — see `tpt-gpu/todo.md` Phase 16
 
 ### tpt-crucible Adapter
 - [ ] Add `tpt-uir-dialects` as a dependency in `tpt-crucible`
@@ -157,10 +161,10 @@
 - [ ] Emit shapes as `Dimension::Fixed` only
 
 ### Round-Trip Validation
-- [ ] Write `test_roundtrip_gpu()`: load Llama-3 block → GPU adapter → TPT-UIR → back → assert lossless
-- [ ] Write `test_roundtrip_crucible()`: load Llama-3 block → Crucible adapter → TPT-UIR → back → assert lossless
-- [ ] Both round-trip tests pass
-- [ ] Fix any lossless failures
+- [x] Write `test_roundtrip_gpu()`: load Llama-3 block (GGUF fixture + hand-authored multi-block/rich kernels) → GPU adapter → TPT-UIR → back → assert lossless (8 adapter tests pass; kernelgen/runtime integration tests pass)
+- [ ] Write `test_roundtrip_crucible()`: load Llama-3 block → Crucible adapter → TPT-UIR → back → assert lossless (Crucible adapter not yet implemented)
+- [ ] Both round-trip tests pass — GPU done; Crucible adapter pending
+- [x] Fix any lossless failures (GPU path is lossless; no fixes required)
 
 ---
 
