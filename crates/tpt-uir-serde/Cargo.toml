@@ -4,11 +4,18 @@ version = "0.1.0"
 edition = "2021"
 description = "Zero-copy serialization for TPT-UIR (postcard)"
 license = "MIT OR Apache-2.0"
+authors = ["TPT Solutions"]
+repository = "https://github.com/tpt-solutions/tpt-uir"
+homepage = "https://github.com/tpt-solutions/tpt-uir"
+documentation = "https://docs.rs/tpt-uir-serde"
+keywords = ["uir", "ir", "serialization", "postcard", "no-std"]
+categories = ["encoding", "compilers", "no-std"]
+readme = "README.md"
 
 [dependencies]
 postcard = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["alloc"] }
-tpt-uir-core = { path = "../tpt-uir-core", features = ["serde"] }
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0", features = ["serde"] }
 
 [features]
 default = []
