@@ -1,5 +1,8 @@
 # tpt-uir-flatbuffers
 
+[![CI](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml/badge.svg)](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Zero-copy (memory-mappable) **FlatBuffers** format for the **TPT Unified
 Intermediate Representation (TPT-UIR)**.
 
@@ -10,6 +13,15 @@ copy-based format, see [`tpt-uir-serde`](../tpt-uir-serde).
 
 This crate is `no_std` by default; the `mmap` feature adds memory-mapped file
 access (and implies `std`).
+
+## Installation
+
+Not yet on crates.io — depend on it via git or a path within this workspace:
+
+```toml
+[dependencies]
+tpt-uir-flatbuffers = { git = "https://github.com/tpt-solutions/tpt-uir", package = "tpt-uir-flatbuffers", features = ["mmap"] }
+```
 
 ## Example
 
@@ -42,6 +54,8 @@ let back = from_flatbuffer(&bytes).unwrap();
 assert_eq!(region, back);
 assert!(validate_region(&back).is_ok());
 ```
+
+See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
 ## License
 

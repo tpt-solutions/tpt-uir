@@ -1,5 +1,8 @@
 # tpt-uir-serde
 
+[![CI](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml/badge.svg)](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Compact binary (de)serialization for the **TPT Unified Intermediate Representation
 (TPT-UIR)** using [postcard](https://docs.rs/postcard).
 
@@ -16,6 +19,15 @@ feature enabled) and provides:
 - `write_tptuir` / `read_tptuir` for `.tptuir` files (requires the `std` feature)
 
 It is `no_std` by default; enable the `std` feature for file I/O helpers.
+
+## Installation
+
+Not yet on crates.io — depend on it via git or a path within this workspace:
+
+```toml
+[dependencies]
+tpt-uir-serde = { git = "https://github.com/tpt-solutions/tpt-uir", package = "tpt-uir-serde", features = ["std"] }
+```
 
 ## Example
 
@@ -41,6 +53,8 @@ let bytes = serialize_region(&region).unwrap();
 let back = deserialize_region(&bytes).unwrap();
 assert_eq!(region, back);
 ```
+
+See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
 ## License
 

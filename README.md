@@ -5,6 +5,10 @@ intermediate representation for machine-learning compilers and hardware
 accelerators in the TPT stack.
 
 [![CI](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml/badge.svg)](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
+> **Status:** pre-release (`0.1.0`), not yet published to crates.io. APIs may
+> still change between minor versions; see each crate's `CHANGELOG.md`.
 
 TPT-UIR models SSA region/block/operation graphs with a small, typed attribute
 system, and ships first-class serialization in three formats:
@@ -15,6 +19,17 @@ system, and ships first-class serialization in three formats:
 
 A CLI (`tpt-uir-cli`) and a C FFI (`tpt-uir-ffi`) are provided for inspection and
 integration.
+
+## Contents
+
+- [Architecture](#architecture)
+- [Crates](#crates)
+- [Installation](#installation)
+- [Dialects & versioning](#dialects--versioning)
+- [Downstream consumers](#downstream-consumers)
+- [Getting started](#getting-started)
+- [Quality gates](#quality-gates)
+- [License](#license)
 
 ## Architecture
 
@@ -52,16 +67,44 @@ text, and FFI crates depend only on `core` (and, where relevant, `dialects`).
 
 ## Crates
 
-| Crate | Purpose |
-| --- | --- |
-| `tpt-uir-core` | Core IR data structures, builder API, quantization helpers, SSA validation (`no_std`). |
-| `tpt-uir-dialects` | GPU / Crucible / Memory dialects and dialect-level validation. |
-| `tpt-uir-serde` | Compact postcard (de)serialization (`no_std`; `std` for file I/O). |
-| `tpt-uir-flatbuffers` | Zero-copy FlatBuffers layout + `mmap` access (`no_std`). |
-| `tpt-uir-text` | Hand-written textual lexer/parser/printer. |
-| `tpt-uir-ffi` | `cdylib`/`rlib`/`staticlib` C ABI for read-only inspection. |
-| `tpt-uir-cli` | `validate` / `print` / `convert` command-line tool. |
-| `tpt-uir-examples` | Usage examples and end-to-end tests (not published). |
+| Crate | Purpose | Docs |
+| --- | --- | --- |
+| `tpt-uir-core` | Core IR data structures, builder API, quantization helpers, SSA validation (`no_std`). | [README](crates/tpt-uir-core/README.md) · [CHANGELOG](crates/tpt-uir-core/CHANGELOG.md) |
+| `tpt-uir-dialects` | GPU / Crucible / Memory dialects and dialect-level validation. | [README](crates/tpt-uir-dialects/README.md) · [CHANGELOG](crates/tpt-uir-dialects/CHANGELOG.md) |
+| `tpt-uir-serde` | Compact postcard (de)serialization (`no_std`; `std` for file I/O). | [README](crates/tpt-uir-serde/README.md) · [CHANGELOG](crates/tpt-uir-serde/CHANGELOG.md) |
+| `tpt-uir-flatbuffers` | Zero-copy FlatBuffers layout + `mmap` access (`no_std`). | [README](crates/tpt-uir-flatbuffers/README.md) · [CHANGELOG](crates/tpt-uir-flatbuffers/CHANGELOG.md) |
+| `tpt-uir-text` | Hand-written textual lexer/parser/printer. | [README](crates/tpt-uir-text/README.md) · [CHANGELOG](crates/tpt-uir-text/CHANGELOG.md) |
+| `tpt-uir-ffi` | `cdylib`/`rlib`/`staticlib` C ABI for read-only inspection. | [README](crates/tpt-uir-ffi/README.md) · [CHANGELOG](crates/tpt-uir-ffi/CHANGELOG.md) |
+| `tpt-uir-cli` | `validate` / `print` / `convert` command-line tool. | [README](crates/tpt-uir-cli/README.md) · [CHANGELOG](crates/tpt-uir-cli/CHANGELOG.md) |
+| `tpt-uir-examples` | Usage examples and end-to-end tests (not published). | [README](crates/tpt-uir-examples/README.md) |
+
+## Installation
+
+These crates are not yet on crates.io. Until the first publish, depend on them
+directly from git (pin a commit or tag for reproducible builds):
+
+```toml
+[dependencies]
+tpt-uir-core = { git = "https://github.com/tpt-solutions/tpt-uir", package = "tpt-uir-core" }
+tpt-uir-dialects = { git = "https://github.com/tpt-solutions/tpt-uir", package = "tpt-uir-dialects" }
+```
+
+Working inside this workspace (e.g. from a sibling crate or a fork), use path
+dependencies instead:
+
+```toml
+[dependencies]
+tpt-uir-core = { path = "../tpt-uir/crates/tpt-uir-core" }
+```
+
+Building the CLI from source:
+
+```sh
+git clone https://github.com/tpt-solutions/tpt-uir
+cd tpt-uir
+cargo build --release -p tpt-uir-cli
+./target/release/tpt-uir-cli --help
+```
 
 ## Dialects & versioning
 
@@ -81,7 +124,11 @@ the postcard wire format never renumbers existing enum variants.
 - **`tpt-telos`** — formal memory-bound proofs over TPT-UIR regions via
   `tpt-telos-uir-bridge` (Z3 / Fourier-Motzkin).
 
-## Quick start
+## Getting started
+
+**1. Build a region and validate it.** Regions contain blocks, blocks contain
+operations — the same shape whether you're modeling an SSA function or a
+dataflow graph (see [spec.txt](spec.txt) for the full data model).
 
 ```rust
 use tpt_uir_core::builder::{BlockBuilder, OpBuilder, RegionBuilder};
@@ -97,12 +144,33 @@ let region = RegionBuilder::new()
     ).build())
     .build();
 
-tpt_uir_core::validate_region(&region).unwrap();
-GpuDialect::validate_all(&region).unwrap();
+tpt_uir_core::validate_region(&region).unwrap(); // SSA well-formedness
+GpuDialect::validate_all(&region).unwrap();      // GPU dialect invariants
 ```
 
-See `crates/tpt-uir-examples/examples/` for full postcard / FlatBuffers / text
-round-trip examples, and `crates/tpt-uir-cli/README.md` for the CLI.
+**2. Serialize it.** Pick postcard for compact storage, FlatBuffers for
+zero-copy reads, or text for something you can diff and hand-edit:
+
+```rust
+let bytes = tpt_uir_serde::serialize_region(&region).unwrap();      // postcard
+let fb    = tpt_uir_flatbuffers::to_flatbuffer(&region);            // flatbuffers
+let text  = tpt_uir_text::to_text(&region);                         // text
+```
+
+**3. Inspect it from the command line.** Write a region to a `.tptuir`
+(postcard) file, then:
+
+```sh
+tpt-uir-cli validate region.tptuir --dialect gpu
+tpt-uir-cli print region.tptuir
+tpt-uir-cli convert --in region.tptuir --out region.uir --to-format text
+```
+
+For runnable, end-to-end versions of the above (including round-trips through
+all three formats and the C FFI), see
+[`crates/tpt-uir-examples/`](crates/tpt-uir-examples/README.md) and
+[`crates/tpt-uir-cli/README.md`](crates/tpt-uir-cli/README.md) for the full CLI
+reference.
 
 ## Quality gates
 

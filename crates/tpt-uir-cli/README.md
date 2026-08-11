@@ -1,6 +1,21 @@
 # tpt-uir-cli
 
+[![CI](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml/badge.svg)](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Command-line tool for working with **TPT-UIR** regions.
+
+## Installation
+
+Not yet on crates.io — build from source:
+
+```sh
+git clone https://github.com/tpt-solutions/tpt-uir
+cd tpt-uir
+cargo install --path crates/tpt-uir-cli
+# or, without installing:
+cargo run --release -p tpt-uir-cli -- --help
+```
 
 ## Subcommands
 
@@ -18,6 +33,8 @@ tpt-uir-cli convert --in <file> --out <file> \
 - `convert` — reads one format and writes another. Format is taken from the
   file extension when `--from-format` / `--to-format` are omitted
   (`*.tptuir` → postcard, `*.txt`/`*.uir` → text, `*.fbs`/`*.flat` → flatbuffers).
+
+See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
 ## License
 

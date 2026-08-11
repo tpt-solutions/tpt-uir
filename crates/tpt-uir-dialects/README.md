@@ -1,5 +1,8 @@
 # tpt-uir-dialects
 
+[![CI](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml/badge.svg)](https://github.com/tpt-solutions/tpt-uir/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+
 Dialect definitions and analysis passes for the **TPT Unified Intermediate
 Representation (TPT-UIR)**.
 
@@ -10,6 +13,15 @@ This crate builds on [`tpt-uir-core`](../tpt-uir-core) and provides:
 - `memory` dialect (`MemOp`) for memory operations
 - A `ValidateDialect` trait for dialect-level validation
 - Analysis passes (e.g. liveness)
+
+## Installation
+
+Not yet on crates.io — depend on it via git or a path within this workspace:
+
+```toml
+[dependencies]
+tpt-uir-dialects = { git = "https://github.com/tpt-solutions/tpt-uir", package = "tpt-uir-dialects" }
+```
 
 ## Example
 
@@ -83,6 +95,8 @@ let region = tpt_uir_core::Region {
 
 assert!(GpuDialect::validate_all(&region).is_ok());
 ```
+
+See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
 ## License
 
