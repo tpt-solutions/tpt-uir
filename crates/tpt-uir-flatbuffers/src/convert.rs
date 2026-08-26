@@ -462,6 +462,14 @@ fn read_attr_value(a: Attribute) -> Result<CoreAttrValue, ConvertError> {
                 },
             }))
         }
+        8 => {
+            let x = a
+                .value_as_bytes_value()
+                .ok_or(ConvertError("missing BytesValue union value"))?;
+            Ok(CoreAttrValue::Bytes(
+                x.v().map(|v| v.iter().collect()).unwrap_or_default(),
+            ))
+        }
         _ => Err(ConvertError("attribute with NONE union discriminant")),
     }
 }
