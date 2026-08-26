@@ -9,6 +9,29 @@ extern crate alloc;
 
 use alloc::string::ToString;
 use alloc::vec::Vec;
+use core::fmt;
+
+/// Error produced when decoding a FlatBuffers buffer into the core IR.
+///
+/// Mirrors the error style of `tpt-uir-serde` / `tpt-uir-text`: the read path
+/// never panics on malformed input; every failure is reported as a value.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConvertError(&'static str);
+
+impl ConvertError {
+    pub fn message(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl fmt::Display for ConvertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for ConvertError {}
 
 use flatbuffers::{FlatBufferBuilder, WIPOffset};
 
@@ -47,25 +70,25 @@ fn scalar_to_fb(s: CoreScalar) -> ScalarType {
     }
 }
 
-fn scalar_from_fb(s: ScalarType) -> CoreScalar {
+fn scalar_from_fb(s: ScalarType) -> Result<CoreScalar, ConvertError> {
     match s.0 {
-        0 => CoreScalar::I8,
-        1 => CoreScalar::I16,
-        2 => CoreScalar::I32,
-        3 => CoreScalar::I64,
-        4 => CoreScalar::U8,
-        5 => CoreScalar::U16,
-        6 => CoreScalar::U32,
-        7 => CoreScalar::U64,
-        8 => CoreScalar::F16,
-        9 => CoreScalar::F32,
-        10 => CoreScalar::F64,
-        11 => CoreScalar::BF16,
-        12 => CoreScalar::Bool,
-        13 => CoreScalar::Q4_0,
-        14 => CoreScalar::Q4_1,
-        15 => CoreScalar::Q8_0,
-        _ => unreachable!("invalid ScalarType discriminant"),
+        0 => Ok(CoreScalar::I8),
+        1 => Ok(CoreScalar::I16),
+        2 => Ok(CoreScalar::I32),
+        3 => Ok(CoreScalar::I64),
+        4 => Ok(CoreScalar::U8),
+        5 => Ok(CoreScalar::U16),
+        6 => Ok(CoreScalar::U32),
+        7 => Ok(CoreScalar::U64),
+        8 => Ok(CoreScalar::F16),
+        9 => Ok(CoreScalar::F32),
+        10 => Ok(CoreScalar::F64),
+        11 => Ok(CoreScalar::BF16),
+        12 => Ok(CoreScalar::Bool),
+        13 => Ok(CoreScalar::Q4_0),
+        14 => Ok(CoreScalar::Q4_1),
+        15 => Ok(CoreScalar::Q8_0),
+        _ => Err(ConvertError("invalid ScalarType discriminant")),
     }
 }
 
@@ -320,42 +343,48 @@ pub fn to_flatbuffer(region: &CoreRegion) -> Vec<u8> {
 // Read direction (flatbuffer -> core)
 // ---------------------------------------------------------------------------
 
-fn read_dim(d: Dimension) -> CoreDim {
+fn read_dim(d: Dimension) -> Result<CoreDim, ConvertError> {
     match d.kind().0 {
-        0 => CoreDim::Fixed(d.size_() as usize),
-        1 => CoreDim::Symbolic(d.symbol().map(ToString::to_string).unwrap_or_default()),
-        2 => CoreDim::Bounded {
+        0 => Ok(CoreDim::Fixed(d.size_() as usize)),
+        1 => Ok(CoreDim::Symbolic(
+            d.symbol().map(ToString::to_string).unwrap_or_default(),
+        )),
+        2 => Ok(CoreDim::Bounded {
             symbol: d.symbol().map(ToString::to_string).unwrap_or_default(),
             max_value: d.max_value() as usize,
-        },
-        _ => unreachable!("invalid DimensionKind discriminant"),
+        }),
+        _ => Err(ConvertError("invalid DimensionKind discriminant")),
     }
 }
 
-fn read_shape(s: ShapeSpec) -> CoreShape {
+fn read_shape(s: ShapeSpec) -> Result<CoreShape, ConvertError> {
     let dimensions = s
         .dimensions()
-        .map(|v| v.iter().map(read_dim).collect())
+        .map(|v| v.iter().map(read_dim).collect::<Result<Vec<_>, _>>())
+        .transpose()?
         .unwrap_or_default();
-    CoreShape { dimensions }
+    Ok(CoreShape { dimensions })
 }
 
-fn read_type(t: TypeValue) -> CoreType {
+fn read_type(t: TypeValue) -> Result<CoreType, ConvertError> {
     match t.type_type().0 {
         1 => {
             let w = t
                 .type__as_scalar_type_wrapper()
-                .expect("ScalarTypeWrapper union");
-            CoreType::Scalar(scalar_from_fb(w.scalar()))
+                .ok_or(ConvertError("missing ScalarTypeWrapper union value"))?;
+            Ok(CoreType::Scalar(scalar_from_fb(w.scalar())?))
         }
         2 => {
-            let tt = t.type__as_tensor_type().expect("TensorType union");
-            CoreType::Tensor(CoreTensor {
-                dtype: scalar_from_fb(tt.dtype()),
-                shape: tt.shape().map(read_shape),
-            })
+            let tt = t
+                .type__as_tensor_type()
+                .ok_or(ConvertError("missing TensorType union value"))?;
+            let shape = tt.shape().map(read_shape).transpose()?;
+            Ok(CoreType::Tensor(CoreTensor {
+                dtype: scalar_from_fb(tt.dtype())?,
+                shape,
+            }))
         }
-        _ => CoreType::Index,
+        _ => Ok(CoreType::Index),
     }
 }
 
@@ -366,36 +395,56 @@ fn read_opname(n: OpName) -> CoreOpName {
     )
 }
 
-fn read_attr_value(a: Attribute) -> CoreAttrValue {
+fn read_attr_value(a: Attribute) -> Result<CoreAttrValue, ConvertError> {
     match a.value_type().0 {
         1 => {
-            let x = a.value_as_i64_value().expect("i64 union");
-            CoreAttrValue::I64(x.v())
+            let x = a
+                .value_as_i64_value()
+                .ok_or(ConvertError("missing I64Value union value"))?;
+            Ok(CoreAttrValue::I64(x.v()))
         }
         2 => {
-            let x = a.value_as_f64_value().expect("f64 union");
-            CoreAttrValue::F64(x.v())
+            let x = a
+                .value_as_f64_value()
+                .ok_or(ConvertError("missing F64Value union value"))?;
+            Ok(CoreAttrValue::F64(x.v()))
         }
         3 => {
-            let x = a.value_as_string_value().expect("string union");
-            CoreAttrValue::String(x.v().map(ToString::to_string).unwrap_or_default())
+            let x = a
+                .value_as_string_value()
+                .ok_or(ConvertError("missing StringValue union value"))?;
+            Ok(CoreAttrValue::String(
+                x.v().map(ToString::to_string).unwrap_or_default(),
+            ))
         }
         4 => {
-            let x = a.value_as_type_value().expect("type union");
-            CoreAttrValue::Type(read_type(x))
+            let x = a
+                .value_as_type_value()
+                .ok_or(ConvertError("missing TypeValue union value"))?;
+            Ok(CoreAttrValue::Type(read_type(x)?))
         }
         5 => {
-            let x = a.value_as_shape_value().expect("shape union");
-            CoreAttrValue::Shape(read_shape(x.shape().expect("shape present")))
+            let x = a
+                .value_as_shape_value()
+                .ok_or(ConvertError("missing ShapeValue union value"))?;
+            let shape = x.shape().ok_or(ConvertError("missing Shape table"))?;
+            Ok(CoreAttrValue::Shape(read_shape(shape)?))
         }
         6 => {
-            let x = a.value_as_op_name_value().expect("opname union");
-            CoreAttrValue::OpName(read_opname(x.op_name().expect("opname present")))
+            let x = a
+                .value_as_op_name_value()
+                .ok_or(ConvertError("missing OpNameValue union value"))?;
+            let op_name = x.op_name().ok_or(ConvertError("missing OpName table"))?;
+            Ok(CoreAttrValue::OpName(read_opname(op_name)))
         }
         7 => {
-            let x = a.value_as_quantization_value().expect("quant union");
-            let q = x.quant().expect("quant present");
-            CoreAttrValue::Quantization(CoreQuant {
+            let x = a
+                .value_as_quantization_value()
+                .ok_or(ConvertError("missing QuantizationValue union value"))?;
+            let q = x
+                .quant()
+                .ok_or(ConvertError("missing QuantizationParams table"))?;
+            Ok(CoreAttrValue::Quantization(CoreQuant {
                 block_size: q.block_size(),
                 bytes_per_block: q.bytes_per_block(),
                 num_blocks: q.num_blocks(),
@@ -404,20 +453,20 @@ fn read_attr_value(a: Attribute) -> CoreAttrValue {
                 } else {
                     None
                 },
-            })
+            }))
         }
-        _ => panic!("Attribute with NONE union discriminant"),
+        _ => Err(ConvertError("attribute with NONE union discriminant")),
     }
 }
 
-fn read_attribute(a: Attribute) -> tpt_uir_core::attr::Attribute {
-    tpt_uir_core::attr::Attribute {
+fn read_attribute(a: Attribute) -> Result<tpt_uir_core::attr::Attribute, ConvertError> {
+    Ok(tpt_uir_core::attr::Attribute {
         key: a.key().map(ToString::to_string).unwrap_or_default(),
-        value: read_attr_value(a),
-    }
+        value: read_attr_value(a)?,
+    })
 }
 
-fn read_operation(op: Operation) -> CoreOp {
+fn read_operation(op: Operation) -> Result<CoreOp, ConvertError> {
     let operands = op
         .operands()
         .map(|v| v.iter().collect())
@@ -425,13 +474,15 @@ fn read_operation(op: Operation) -> CoreOp {
     let results = op.results().map(|v| v.iter().collect()).unwrap_or_default();
     let regions = op
         .regions()
-        .map(|v| v.iter().map(read_region).collect())
+        .map(|v| v.iter().map(read_region).collect::<Result<Vec<_>, _>>())
+        .transpose()?
         .unwrap_or_default();
     let attributes = op
         .attributes()
-        .map(|v| v.iter().map(read_attribute).collect())
+        .map(|v| v.iter().map(read_attribute).collect::<Result<Vec<_>, _>>())
+        .transpose()?
         .unwrap_or_default();
-    CoreOp {
+    Ok(CoreOp {
         id: op.id(),
         op_name: op
             .op_name()
@@ -441,10 +492,10 @@ fn read_operation(op: Operation) -> CoreOp {
         results,
         regions,
         attributes,
-    }
+    })
 }
 
-fn read_block(b: Block) -> CoreBlock {
+fn read_block(b: Block) -> Result<CoreBlock, ConvertError> {
     let arguments = b
         .arguments()
         .map(|v| {
@@ -452,47 +503,57 @@ fn read_block(b: Block) -> CoreBlock {
                 .map(|arg| {
                     let ty = match arg.type_type().0 {
                         1 => {
-                            let w = arg.type__as_scalar_type_wrapper().expect("scalar");
-                            CoreType::Scalar(scalar_from_fb(w.scalar()))
+                            let w = arg
+                                .type__as_scalar_type_wrapper()
+                                .ok_or(ConvertError("missing ScalarTypeWrapper union value"))?;
+                            CoreType::Scalar(scalar_from_fb(w.scalar())?)
                         }
                         2 => {
-                            let tt = arg.type__as_tensor_type().expect("tensor");
+                            let tt = arg
+                                .type__as_tensor_type()
+                                .ok_or(ConvertError("missing TensorType union value"))?;
+                            let shape = tt.shape().map(read_shape).transpose()?;
                             CoreType::Tensor(CoreTensor {
-                                dtype: scalar_from_fb(tt.dtype()),
-                                shape: tt.shape().map(read_shape),
+                                dtype: scalar_from_fb(tt.dtype())?,
+                                shape,
                             })
                         }
                         _ => CoreType::Index,
                     };
-                    (arg.value(), ty)
+                    Ok((arg.value(), ty))
                 })
-                .collect()
+                .collect::<Result<Vec<_>, _>>()
         })
+        .transpose()?
         .unwrap_or_default();
     let operations = b
         .operations()
-        .map(|v| v.iter().map(read_operation).collect())
+        .map(|v| v.iter().map(read_operation).collect::<Result<Vec<_>, _>>())
+        .transpose()?
         .unwrap_or_default();
-    CoreBlock {
+    Ok(CoreBlock {
         arguments,
         operations,
-    }
+    })
 }
 
-fn read_region(r: Region) -> CoreRegion {
+fn read_region(r: Region) -> Result<CoreRegion, ConvertError> {
     let blocks = r
         .blocks()
-        .map(|v| v.iter().map(read_block).collect())
+        .map(|v| v.iter().map(read_block).collect::<Result<Vec<_>, _>>())
+        .transpose()?
         .unwrap_or_default();
-    CoreRegion { blocks }
+    Ok(CoreRegion { blocks })
 }
 
 /// Read a [`tpt_uir_core::Region`] from a FlatBuffers byte buffer.
 ///
-/// Returns `None` if the buffer is not a valid `Region` flatbuffer.
-pub fn from_flatbuffer(buf: &[u8]) -> Option<CoreRegion> {
-    let r = crate::root_as_region(buf).ok()?;
-    Some(read_region(r))
+/// Returns `Err` if the buffer is not a valid `Region` flatbuffer or contains
+/// malformed data (unknown union discriminants, missing tables, ...).
+pub fn from_flatbuffer(buf: &[u8]) -> Result<CoreRegion, ConvertError> {
+    let r =
+        crate::root_as_region(buf).map_err(|_| ConvertError("not a valid Region flatbuffer"))?;
+    read_region(r)
 }
 
 #[cfg(test)]
@@ -574,7 +635,23 @@ mod tests {
     }
 
     #[test]
-    fn bad_buffer_is_none() {
-        assert!(from_flatbuffer(b"not a flatbuffer").is_none());
+    fn bad_buffer_is_err() {
+        assert!(from_flatbuffer(b"not a flatbuffer").is_err());
+    }
+
+    #[test]
+    fn truncated_buffer_is_err_not_panic() {
+        let region = sample();
+        let bytes = to_flatbuffer(&region);
+        // Corrupt the ScalarType discriminant of the block-arg type union.
+        for cut in 0..bytes.len() {
+            // Any truncation or corruption must yield an Err, never a panic.
+            let _ = from_flatbuffer(&bytes[..cut]);
+        }
+        let mut corrupted = bytes.clone();
+        if let Some(last) = corrupted.last_mut() {
+            *last = !*last;
+        }
+        let _ = from_flatbuffer(&corrupted);
     }
 }

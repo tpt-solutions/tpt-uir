@@ -124,6 +124,29 @@ mod tests {
     }
 
     #[test]
+    fn roundtrip_shape_attribute() {
+        let mut region = sample();
+        region.blocks[0].operations[0]
+            .attributes
+            .push(Attribute::shape(
+                "grid",
+                ShapeSpec {
+                    dimensions: vec![
+                        Dimension::Fixed(128),
+                        Dimension::Bounded {
+                            symbol: "n".into(),
+                            max_value: 4096,
+                        },
+                    ],
+                },
+            ));
+        let text = to_text(&region);
+        assert!(text.contains("grid = shape<"), "got: {}", text);
+        let back = parse_text(&text).expect("shape attribute must parse");
+        assert_eq!(region, back, "round-trip mismatch:\n{}", text);
+    }
+
+    #[test]
     fn empty_region() {
         let region = Region {
             blocks: vec![Block {

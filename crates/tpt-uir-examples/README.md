@@ -12,6 +12,8 @@ Run with `cargo run --example <name> -p tpt-uir-examples`:
 | --- | --- |
 | [`quickstart`](examples/quickstart.rs) | Building a region with the fluent builders, attaching quantization and dialect-version metadata, GPU dialect validation, and round-tripping through postcard, FlatBuffers, and text. |
 | [`crucible_static_shapes`](examples/crucible_static_shapes.rs) | The Crucible dialect's static-shape requirement (`Dimension::Fixed`), contrasted with the GPU dialect's `Bounded`/`None` shapes, plus hardware routing attributes. |
+| [`gpu_threaded_add`](examples/gpu_threaded_add.rs) | The GPU dialect in action: `Bounded` shapes, a nested kernel region with `tpt_gpu.thread_id`/`tpt_gpu.barrier`, grid attributes, and text round-trip. |
+| [`cookbook_mlp`](examples/cookbook_mlp.rs) | Cookbook: a larger, realistic graph — fused block-quantized GEMM with a nested tile loop, memory-arena scope ops, GPU launch, and round-trips through all three wire formats. |
 
 ```sh
 cargo run --example quickstart -p tpt-uir-examples

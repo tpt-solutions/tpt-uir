@@ -209,8 +209,10 @@ impl Parser {
                 Ok(AttributeValue::Type(self.parse_tensor_body()?))
             }
             Some(Tok::Ident(s)) if s == "shape" => {
+                // The `shape` keyword is already consumed here; parse only the
+                // `<...>` body (parse_shape would expect the keyword again).
                 self.next();
-                Ok(AttributeValue::Shape(self.parse_shape()?))
+                Ok(AttributeValue::Shape(self.parse_shape_body()?))
             }
             Some(Tok::Ident(s)) if s == "quant" => {
                 self.next();

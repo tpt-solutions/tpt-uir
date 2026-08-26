@@ -1,7 +1,8 @@
 # TPT-UIR Implementation Checklist
 
-**Repo:** `tpt-uir` | **Status:** Approved for Implementation  
+**Repo:** `tpt-uir` | **Status:** Approved for Implementation
 **Target consumers:** `tpt-gpu`, `tpt-crucible`, `tpt-telos`
+**Last updated:** 2026-08-26 — Phases 1–11 complete; longer-horizon backlog below.
 
 ---
 
@@ -288,3 +289,70 @@
 - Prebuilt cross-platform `tpt-uir-ffi` binary release pipeline (GitHub Actions release matrix) — release-engineering scope, separate from the library/FFI code
 - FFI/CLI write-and-construct-IR capability (read/validate/inspect only for now)
 - `cargo semver-checks` in CI — add once there's a released baseline to check against
+
+## Phase 11 — Review Follow-ups ✅ DONE
+
+> From the 2026-08-26 platform review (bugs, gaps, adoption). See
+> `C:\Users\phill\.claude\plans\review-platform-for-bugs-vivid-turing.md` for full detail.
+
+### Bugs
+- [x] `tpt-uir-flatbuffers/src/convert.rs`: replace `.expect()`/`panic!`/`unreachable!()` in the read path (`read_type`, `read_attr_value`, union/discriminant handling) with `Result`-returning error handling, matching `tpt-uir-serde`/`tpt-uir-text` (`from_flatbuffer` now returns `Result<Region, ConvertError>`; callers updated)
+- [x] `tpt-uir-ffi/src/lib.rs`: replace `CString::new(...).expect(...)` in `tpt_uir_op_dialect` / `tpt_uir_op_op` with the crate's existing `c_int` error-code convention (avoid panicking across the C ABI boundary) (new code `3`: interior NUL)
+- [x] Fix CI/README doc-test drift — added an explicit `cargo test --doc --workspace` step to `.github/workflows/ci.yml`
+- [x] Fix malformed `tpt-uir-core/CHANGELOG.md` (two stacked `### Added` headers under `[0.1.0]`)
+
+### Adoption
+- [x] Add a short issues-only `CONTRIBUTING.md` (point at `AGENTS.md`'s quality-gate commands)
+- [x] Add a bug-report issue template under `.github/ISSUE_TEMPLATE/`
+- [x] Add a GPU-dialect-focused example in `crates/tpt-uir-examples/` (mirroring `crucible_static_shapes.rs`) — `examples/gpu_threaded_add.rs`
+- [x] Add a minimal C example calling `tpt-uir-ffi` directly, exercising `include/tpt_uir_ffi.h` — `crates/tpt-uir-ffi/examples/basic.c`
+- [x] Expand `crates/tpt-uir-examples/README.md` with a "cookbook" example showing a larger, more realistic graph — `examples/cookbook_mlp.rs`
+
+### Automation
+- [x] Add `cargo-deny` or `cargo-audit` CI step for license/advisory scanning (cargo-deny + root `deny.toml`, separate `supply-chain` CI job)
+- [x] Add Dependabot/Renovate config for crates with external dependencies (`.github/dependabot.yml`: cargo weekly + github-actions weekly)
+
+## Phase 12 — Longer-Horizon Progress
+
+### Done (2026-08-26, batch 1)
+- [x] CLI `diff` subcommand (`crates/tpt-uir-cli`) — structural comparison of two
+  regions in any format mix via `--format-a`/`--format-b`; exit `0` when identical,
+  exit `1` with `-`/`+` op lines otherwise. Covered by 2 integration tests.
+- [x] CLI `fmt` subcommand (`crates/tpt-uir-cli`) — canonicalizes textual files;
+  `--check` exits non-zero without writing when the file is not canonical.
+  Covered by 2 integration tests.
+- [x] CLI README + CHANGELOG updated with both subcommands.
+- [x] Full quality gates re-run green after the change: `cargo fmt --check`,
+  clippy (default + no-default-features, `-D warnings`),
+  `cargo test --workspace`, `cargo build --workspace --no-default-features`.
+
+### Done (2026-08-26, batch 2)
+- [x] Text-format gap fixed: shape attributes now round-trip losslessly.
+  Root cause was in the parser (`parse_attr_value` consumed the `shape`
+  keyword, then `parse_shape` expected it again); it now parses only the
+  `<...>` body. Regression test `roundtrip_shape_attribute` added to
+  `tpt-uir-text`; `gpu_threaded_add.rs` example restored to a real
+  `AttributeValue::Shape` grid attribute.
+- [x] Release pipeline for `tpt-uir-cli` / `tpt-uir-ffi` binaries — hand-rolled
+  `.github/workflows/release.yml`: tag-triggered (`v*`), cross-platform matrix
+  (linux x86_64/aarch64, macOS x86_64/aarch64, Windows x86_64) building the CLI
+  binary plus FFI cdylib/staticlib + C header, tar.gz/zip archives with SHA256
+  checksums, attached to an auto-generated GitHub release.
+- [x] Python bindings over the C ABI — pure-ctypes package under
+  `bindings/python/` (`tpt_uir.Region`, `TptUirError`, auto-discovery of
+  `target/release` libs or via `TPT_UIR_LIBRARY`), with README and a verified
+  smoke test exercising every accessor incl. error paths.
+- [x] Editor support — TextMate grammar `editors/textmate/tpt-uir-text.tmLanguage.json`
+  (`source.tpt-uir-text`) highlighting blocks, op ids, value refs, op names,
+  types, attributes; VS Code embedding recipe in `editors/textmate/README.md`.
+  A full tree-sitter grammar remains future work.
+- [x] WASM playground — new `crates/tpt-uir-wasm` crate (wasm-bindgen:
+  `format_text`/`validate_text`) plus `playground/index.html` editor UI;
+  build instructions in `playground/README.md`. Compiles natively under all
+  workspace CI gates.
+- [x] Documented recipe for new dialect/adapter crates — `docs/new-dialect-crate.md`
+  (scaffold, no_std rules, op-name constants, ValidateDialect impl, additive
+  versioning, adoption surfaces).
+
+### Remaining (not yet scheduled)
+- [ ] Publish crates to crates.io once API is considered stable enough

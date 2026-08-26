@@ -12,6 +12,12 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - `to_flatbuffer` / `from_flatbuffer` conversion mirroring the core IR.
 - `root_as_region` zero-copy accessor over a serialized buffer.
 - `no_std` by default (`flatbuffers` with `default-features = false`).
+
+### Changed
+- `from_flatbuffer` now returns `Result<Region, ConvertError>` instead of
+  `Option<Region>`. The read path no longer panics on malformed input
+  (`expect`/`panic!`/`unreachable!` removed); all failures are reported as
+  typed errors with a static message.
 - Feature-gated `mmap` module (`open_mmap`) for read-only memory-mapped access.
 - Checked-in `flatc`-generated Rust code under `src/generated/`; the exact
   `flatc` version is pinned in `schema/README.md` (codegen is manual, not

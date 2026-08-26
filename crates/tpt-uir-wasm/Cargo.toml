@@ -1,0 +1,18 @@
+[package]
+name = "tpt-uir-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "WASM bindings for the TPT-UIR text format (browser playground)"
+license = "MIT OR Apache-2.0"
+authors = ["TPT Solutions"]
+repository = "https://github.com/tpt-solutions/tpt-uir"
+homepage = "https://github.com/tpt-solutions/tpt-uir"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
+tpt-uir-text = { path = "../tpt-uir-text", version = "0.1.0" }

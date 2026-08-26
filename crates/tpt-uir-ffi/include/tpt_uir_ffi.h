@@ -46,7 +46,8 @@ int tpt_uir_op_count(void *handle, size_t block_index, size_t *out);
  * Write the dialect portion of operation `(block_index, op_index)` to `*out`.
  *
  * The returned pointer references storage owned by the handle and is valid
- * until [`tpt_uir_free`].
+ * until [`tpt_uir_free`]. Returns `0` on success, `1` on a bad handle/index or
+ * `3` if the dialect name contains an interior NUL byte.
  *
  * # Safety
  * `handle` must be a valid handle; `out` must be non-null.
@@ -56,7 +57,7 @@ int tpt_uir_op_dialect(void *handle, size_t block_index, size_t op_index, const 
 /**
  * Write the op portion of operation `(block_index, op_index)` to `*out`.
  *
- * See [`tpt_uir_op_dialect`] for lifetime semantics.
+ * See [`tpt_uir_op_dialect`] for lifetime and error-code semantics.
  *
  * # Safety
  * `handle` must be a valid handle; `out` must be non-null.

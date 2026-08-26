@@ -15,8 +15,6 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Attributes and metadata.
 - `no_std` support via an `alloc` dependency.
 - Optional `serde` feature for (de)serialization of IR types.
-
-### Added
 - `builder` module: fluent `OpBuilder`, `BlockBuilder`, and `RegionBuilder` construction API.
 - `quant` module: `QuantizationParams` layout descriptor and `tensor_byte_size`
   helper using checked arithmetic with GGUF-correct block sizes for `Q4_0`/`Q4_1`/`Q8_0`.

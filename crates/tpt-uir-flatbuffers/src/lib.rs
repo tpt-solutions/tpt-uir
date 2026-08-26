@@ -16,5 +16,5 @@ pub mod generated {
 #[cfg(feature = "mmap")]
 pub mod mmap;
 
-pub use convert::{from_flatbuffer, to_flatbuffer};
+pub use convert::{from_flatbuffer, to_flatbuffer, ConvertError};
 pub use generated::tpt_uir::root_as_region;

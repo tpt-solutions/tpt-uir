@@ -25,6 +25,10 @@ tpt-uir-cli print <file>
 tpt-uir-cli convert --in <file> --out <file> \
     [--from-format postcard|text|flatbuffers] \
     [--to-format postcard|text|flatbuffers]
+tpt-uir-cli fmt <file.txt|file.uir> [--check]
+tpt-uir-cli diff <file-a> <file-b> \
+    [--format-a postcard|text|flatbuffers] \
+    [--format-b postcard|text|flatbuffers]
 ```
 
 - `validate` — runs SSA validation (always) plus dialect validation when
@@ -33,6 +37,12 @@ tpt-uir-cli convert --in <file> --out <file> \
 - `convert` — reads one format and writes another. Format is taken from the
   file extension when `--from-format` / `--to-format` are omitted
   (`*.tptuir` → postcard, `*.txt`/`*.uir` → text, `*.fbs`/`*.flat` → flatbuffers).
+- `fmt` — rewrites a textual file into the canonical printer output. With
+  `--check`, no file is written; it exits non-zero if the file is not already
+  canonical (CI-friendly).
+- `diff` — structurally compares two regions (any mix of formats via
+  `--format-a`/`--format-b`). Prints `regions identical` and exits `0`, or
+  prints `-`/`+` lines for operations that differ and exits `1`.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 

@@ -134,3 +134,96 @@ fn cli_validate_rejects_bad_ssa() {
 
     let _ = std::fs::remove_file(&path);
 }
+
+fn write_text(path: &std::path::Path, region: &Region) -> String {
+    let text = tpt_uir_text::to_text(region);
+    std::fs::write(path, &text).unwrap();
+    text
+}
+
+#[test]
+fn cli_fmt_check_ok_on_canonical() {
+    let region = sample();
+    let path = std::env::temp_dir().join("tpt_uir_fmt_ok.uir");
+    write_text(&path, &region);
+
+    let out = bin().arg("fmt").arg("--check").arg(&path).output().unwrap();
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn cli_fmt_reformats_noncanonical() {
+    let region = sample();
+    // Same IR with trailing whitespace / different spacing.
+    let canonical = tpt_uir_text::to_text(&region);
+    let path = std::env::temp_dir().join("tpt_uir_fmt_fix.uir");
+    std::fs::write(&path, format!("{}\n\n", canonical)).unwrap();
+
+    // --check must fail on non-canonical input.
+    let out = bin().arg("fmt").arg("--check").arg(&path).output().unwrap();
+    assert!(!out.status.success());
+
+    // Plain fmt must rewrite the file to canonical form.
+    let out = bin().arg("fmt").arg(&path).output().unwrap();
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let after = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(after, canonical);
+
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn cli_diff_identical_regions() {
+    let region = sample();
+    let a = std::env::temp_dir().join("tpt_uir_diff_a.uir");
+    let b = std::env::temp_dir().join("tpt_uir_diff_b.tptuir");
+    write_text(&a, &region);
+    // Same region in a *different* wire format must still be identical.
+    let bytes = serialize_region(&region).unwrap();
+    std::fs::write(&b, bytes).unwrap();
+
+    let out = bin()
+        .arg("diff")
+        .arg(&a)
+        .arg("--format-b")
+        .arg("postcard")
+        .arg(&b)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("regions identical"), "got: {}", stdout);
+
+    let _ = std::fs::remove_file(&a);
+    let _ = std::fs::remove_file(&b);
+}
+
+#[test]
+fn cli_diff_reports_differences() {
+    let mut modified = sample();
+    modified.blocks[0].operations[0].operands.push(0);
+
+    let a = std::env::temp_dir().join("tpt_uir_diff_c.uir");
+    let b = std::env::temp_dir().join("tpt_uir_diff_d.uir");
+    write_text(&a, &sample());
+    write_text(&b, &modified);
+
+    let out = bin().arg("diff").arg(&a).arg(&b).output().unwrap();
+    assert!(!out.status.success());
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("regions differ"), "got: {}", stdout);
+    assert!(stdout.contains("op 1 core.add"), "got: {}", stdout);
+
+    let _ = std::fs::remove_file(&a);
+    let _ = std::fs::remove_file(&b);
+}

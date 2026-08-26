@@ -1,0 +1,85 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "TPT-UIR Text",
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#block-label" },
+		{ "include": "#op-id" },
+		{ "include": "#value-ref" },
+		{ "include": "#op-name" },
+		{ "include": "#type" },
+		{ "include": "#attribute-key" },
+		{ "include": "#numbers" },
+		{ "include": "#strings" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.tpt-uir",
+					"match": "//.*$"
+				}
+			]
+		},
+		"block-label": {
+			"name": "entity.name.tag.block.tpt-uir",
+			"match": "\\^bb[A-Za-z0-9_]*"
+		},
+		"op-id": {
+			"name": "constant.numeric.op-id.tpt-uir",
+			"match": "#\\d+:"
+		},
+		"value-ref": {
+			"name": "variable.other.value-ref.tpt-uir",
+			"match": "%\\d+"
+		},
+		"op-name": {
+			"name": "entity.name.function.op-name.tpt-uir",
+			"match": "\"[a-z_][a-z0-9_]*\\.[a-z_][a-z0-9_]*\""
+		},
+		"type": {
+			"patterns": [
+				{
+					"name": "storage.type.index.tpt-uir",
+					"match": "\\bindex\\b"
+				},
+				{
+					"name": "support.type.tensor.tpt-uir",
+					"match": "\\b(tensor|shape|quant)(?=<)"
+				},
+				{
+					"name": "support.type.scalar.tpt-uir",
+					"match": "\\b(i8|i16|i32|i64|u8|u16|u32|u64|f16|f32|f64|bf16|bool|q4_0|q4_1|q8_0)\\b"
+				}
+			]
+		},
+		"attribute-key": {
+			"name": "entity.other.attribute-name.tpt-uir",
+			"match": "(?<=[{,])\\s*[a-z_][a-z0-9_]*(?=\\s*=)"
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.float.tpt-uir",
+					"match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b"
+				},
+				{
+					"name": "constant.numeric.integer.tpt-uir",
+					"match": "\\b\\d+\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.tpt-uir",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.tpt-uir",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.tpt-uir-text"
+}

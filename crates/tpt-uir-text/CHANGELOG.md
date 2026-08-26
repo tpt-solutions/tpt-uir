@@ -14,3 +14,9 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - `Pretty` wrapper implementing `Display` for pretty-printing.
 - Round-trip support for nested regions, `Quantization` attributes, and
   `dialect_version` attributes.
+
+### Fixed
+- `AttributeValue::Shape` attributes now parse correctly: the attribute-value
+  parser previously consumed the `shape` keyword and then expected it again,
+  so any shape-valued attribute failed to round-trip through text. Covered by
+  the `roundtrip_shape_attribute` test.

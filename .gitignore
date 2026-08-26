@@ -45,3 +45,5 @@ lcov.info
 # Crate packaging
 *.crate
 
+__pycache__/
+*.pyc

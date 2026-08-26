@@ -106,7 +106,8 @@ pub unsafe extern "C" fn tpt_uir_op_count(
 /// Write the dialect portion of operation `(block_index, op_index)` to `*out`.
 ///
 /// The returned pointer references storage owned by the handle and is valid
-/// until [`tpt_uir_free`].
+/// until [`tpt_uir_free`]. Returns `0` on success, `1` on a bad handle/index or
+/// `3` if the dialect name contains an interior NUL byte.
 ///
 /// # Safety
 /// `handle` must be a valid handle; `out` must be non-null.
@@ -127,21 +128,23 @@ pub unsafe extern "C" fn tpt_uir_op_dialect(
         .get(block_index)
         .and_then(|b| b.operations.get(op_index))
     {
-        Some(op) => {
-            let cs = std::ffi::CString::new(op.op_name.dialect.as_bytes())
-                .expect("op dialect must not contain NUL");
-            let ptr = cs.as_ptr();
-            h.strings.borrow_mut().push(cs);
-            *out = ptr;
-            0
-        }
+        Some(op) => match std::ffi::CString::new(op.op_name.dialect.as_bytes()) {
+            Ok(cs) => {
+                let ptr = cs.as_ptr();
+                h.strings.borrow_mut().push(cs);
+                *out = ptr;
+                0
+            }
+            // 3: string contains an interior NUL byte.
+            Err(_) => 3,
+        },
         None => 1,
     }
 }
 
 /// Write the op portion of operation `(block_index, op_index)` to `*out`.
 ///
-/// See [`tpt_uir_op_dialect`] for lifetime semantics.
+/// See [`tpt_uir_op_dialect`] for lifetime and error-code semantics.
 ///
 /// # Safety
 /// `handle` must be a valid handle; `out` must be non-null.
@@ -162,14 +165,16 @@ pub unsafe extern "C" fn tpt_uir_op_op(
         .get(block_index)
         .and_then(|b| b.operations.get(op_index))
     {
-        Some(op) => {
-            let cs =
-                std::ffi::CString::new(op.op_name.op.as_bytes()).expect("op must not contain NUL");
-            let ptr = cs.as_ptr();
-            h.strings.borrow_mut().push(cs);
-            *out = ptr;
-            0
-        }
+        Some(op) => match std::ffi::CString::new(op.op_name.op.as_bytes()) {
+            Ok(cs) => {
+                let ptr = cs.as_ptr();
+                h.strings.borrow_mut().push(cs);
+                *out = ptr;
+                0
+            }
+            // 3: string contains an interior NUL byte.
+            Err(_) => 3,
+        },
         None => 1,
     }
 }

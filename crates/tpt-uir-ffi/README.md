@@ -63,6 +63,26 @@ int main(void) {
 
 See [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
+## C example
+
+A complete, compilable C consumer lives at
+[`examples/basic.c`](examples/basic.c). It loads a small postcard-encoded
+region, reads its op name and operands, validates SSA, and frees the handle:
+
+```sh
+cargo build --release -p tpt-uir-ffi
+cc -Iinclude examples/basic.c -o basic \
+    -L../../target/release -ltpt_uir_ffi -Wl,-rpath,../../target/release
+./basic
+```
+
+## Error codes
+
+All functions return `0` on success. Non-zero codes: `1` — bad pointer,
+handle, or index; `2` — decode error (`tpt_uir_load`); `3` — string contains an
+interior NUL byte (`tpt_uir_op_dialect` / `tpt_uir_op_op`). Functions never
+panic across the FFI boundary.
+
 ## License
 
 Licensed under either of [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE) at
