@@ -2,7 +2,16 @@ name: CI
 
 on:
   push:
+    branches: [master]
   pull_request:
+
+# CI-only workflow (nothing to deploy): cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   quality-gates:
@@ -11,15 +20,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        # To make CI reproducible, pin this to a fixed version you have
+        # verified locally, e.g.: uses: dtolnay/rust-toolchain@1.85.0
         with:
           components: clippy, rustfmt
+      - name: Cache cargo registry, index, and build artifacts
+        uses: Swatinem/rust-cache@v2
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Clippy (default features)
         run: cargo clippy --workspace --all-targets -- -D warnings
-      - name: Test
-        run: cargo test --workspace
-      - name: Build (no default features, no_std integrity)
-        run: cargo build --workspace --no-default-features
       - name: Clippy (no default features)
         run: cargo clippy --workspace --no-default-features -- -D warnings
+      - name: Build (no default features, no_std integrity)
+        run: cargo build --workspace --no-default-features
+      - name: Test
+        run: cargo test --workspace
