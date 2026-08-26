@@ -13,7 +13,7 @@ categories = ["encoding", "compilers", "no-std"]
 readme = "README.md"
 
 [dependencies]
-flatbuffers = { version = "24", default-features = false }
+flatbuffers = { version = "25", default-features = false }
 tpt-uir-core = { path = "../tpt-uir-core", version = "0.1.0" }
 memmap2 = { version = "0.9", optional = true }
 
