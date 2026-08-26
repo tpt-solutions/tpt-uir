@@ -26,6 +26,8 @@ fn scalar_name(s: ScalarType) -> &'static str {
         Q4_0 => "q4_0",
         Q4_1 => "q4_1",
         Q8_0 => "q8_0",
+        Q5_0 => "q5_0",
+        Q5_1 => "q5_1",
     }
 }
 
@@ -63,6 +65,14 @@ fn print_type(t: &Type) -> String {
     }
 }
 
+fn print_bytes(b: &[u8]) -> String {
+    let hex = b
+        .iter()
+        .map(|byte| format!("{:02x}", byte))
+        .collect::<String>();
+    format!("bytes<{}>", hex)
+}
+
 fn print_quant(q: &QuantizationParams) -> String {
     match q.scales {
         Some(s) => format!(
@@ -85,6 +95,7 @@ fn print_attr_value(v: &AttributeValue) -> String {
         AttributeValue::Shape(sh) => print_shape(sh),
         AttributeValue::OpName(op) => format!("opname(\"{}\")", op),
         AttributeValue::Quantization(q) => print_quant(q),
+        AttributeValue::Bytes(b) => print_bytes(b),
     }
 }
 

@@ -7,8 +7,9 @@
 //
 // Design notes:
 // - FlatBuffers unions can only hold tables, so scalar attribute payloads
-//   (`i64`, `f64`, `string`) and the `Type`/`Shape`/`OpName`/`Quantization`
-//   payloads are wrapped in small wrapper tables (wrapper-table + union pattern).
+//   (`i64`, `f64`, `string`, `bytes`) and the `Type`/`Shape`/`OpName`/
+//   `Quantization` payloads are wrapped in small wrapper tables (wrapper-table
+//   + union pattern).
 // - `Dimension` is modelled as a single table with a `kind` discriminant plus
 //   the union of fields used by its three variants.
 // - `Type` is a union over `ScalarTypeWrapper`, `TensorType`, and `IndexMarker`.
@@ -32,6 +33,8 @@ enum ScalarType : byte {
   Q4_0 = 13,
   Q4_1 = 14,
   Q8_0 = 15,
+  Q5_0 = 16,
+  Q5_1 = 17,
 }
 
 enum DimensionKind : byte {
@@ -85,6 +88,10 @@ table StringValue {
   v: string;
 }
 
+table BytesValue {
+  v: [ubyte];
+}
+
 table ShapeValue {
   shape: ShapeSpec;
 }
@@ -109,6 +116,7 @@ union AttributeValue {
   ShapeValue,
   OpNameValue,
   QuantizationValue,
+  BytesValue,
 }
 
 table QuantizationParams {

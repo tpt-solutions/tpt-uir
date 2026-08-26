@@ -44,6 +44,8 @@ fn scalar_to_fb(s: CoreScalar) -> ScalarType {
         CoreScalar::Q4_0 => ScalarType::Q4_0,
         CoreScalar::Q4_1 => ScalarType::Q4_1,
         CoreScalar::Q8_0 => ScalarType::Q8_0,
+        CoreScalar::Q5_0 => ScalarType::Q5_0,
+        CoreScalar::Q5_1 => ScalarType::Q5_1,
     }
 }
 
@@ -65,6 +67,8 @@ fn scalar_from_fb(s: ScalarType) -> CoreScalar {
         13 => CoreScalar::Q4_0,
         14 => CoreScalar::Q4_1,
         15 => CoreScalar::Q8_0,
+        16 => CoreScalar::Q5_0,
+        17 => CoreScalar::Q5_1,
         _ => unreachable!("invalid ScalarType discriminant"),
     }
 }
@@ -210,6 +214,11 @@ fn build_attr_value<'a>(
                 AttributeValue::QuantizationValue,
                 Some(wrapper.as_union_value()),
             )
+        }
+        CoreAttrValue::Bytes(b) => {
+            let v = fbb.create_vector(b);
+            let off = BytesValue::create(fbb, &BytesValueArgs { v: Some(v) });
+            (AttributeValue::BytesValue, Some(off.as_union_value()))
         }
     }
 }
@@ -406,6 +415,11 @@ fn read_attr_value(a: Attribute) -> CoreAttrValue {
                 },
             })
         }
+        8 => {
+            let x = a.value_as_bytes_value().expect("bytes union");
+            let bytes = x.v().map(|v| v.iter().collect()).unwrap_or_default();
+            CoreAttrValue::Bytes(bytes)
+        }
         _ => panic!("Attribute with NONE union discriminant"),
     }
 }
@@ -537,6 +551,7 @@ mod tests {
                                     scales: Some(1),
                                 },
                             ),
+                            Attribute::bytes("payload", vec![0xDE, 0xAD, 0xBE, 0xEF]),
                         ],
                     },
                     CoreOp {
@@ -576,5 +591,17 @@ mod tests {
     #[test]
     fn bad_buffer_is_none() {
         assert!(from_flatbuffer(b"not a flatbuffer").is_none());
+    }
+
+    #[test]
+    fn bytes_attribute_roundtrips() {
+        let region = sample();
+        let bytes = to_flatbuffer(&region);
+        let back = from_flatbuffer(&bytes).expect("valid flatbuffer");
+        let attrs = &back.blocks[0].operations[0].attributes;
+        assert!(attrs
+            .iter()
+            .any(|a| a.key == "payload"
+                && a.value == CoreAttrValue::Bytes(vec![0xDE, 0xAD, 0xBE, 0xEF])));
     }
 }

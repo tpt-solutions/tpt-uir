@@ -20,6 +20,10 @@ pub enum Tok {
     Int(i64),
     Float(f64),
     Str(String),
+    /// Raw hex payload between `bytes<` and `>` — kept verbatim so
+    /// all-digit payloads survive (a plain ident/number scan would mangle
+    /// leading zeros and reinterpret them as integers).
+    Hex(String),
 }
 
 #[derive(Debug)]
@@ -138,7 +142,37 @@ pub fn lex(src: &str) -> Result<Vec<Tok>, LexError> {
                 while i < n && is_ident_continue(bytes[i]) {
                     i += 1;
                 }
-                out.push(Tok::Ident(src[start..i].to_string()));
+                let word = &src[start..i];
+                // `bytes<...>` is a raw-hex literal: swallow the payload up
+                // to the closing `>` so it never goes through number/ident
+                // scanning (all-digit payloads would otherwise lex as Int).
+                if word == "bytes" && i < n && bytes[i] == b'<' {
+                    i += 1; // '<'
+                    let payload_start = i;
+                    while i < n && bytes[i] != b'>' {
+                        if !bytes[i].is_ascii_hexdigit() && bytes[i] != b' ' {
+                            return Err(LexError {
+                                pos: i,
+                                message: format!(
+                                    "invalid hex byte in bytes literal: '{}'",
+                                    bytes[i] as char
+                                ),
+                            });
+                        }
+                        i += 1;
+                    }
+                    if i >= n {
+                        return Err(LexError {
+                            pos: i,
+                            message: "unterminated bytes literal (missing '>')".to_string(),
+                        });
+                    }
+                    let payload = src[payload_start..i].replace(' ', "");
+                    i += 1; // '>'
+                    out.push(Tok::Hex(payload));
+                    continue;
+                }
+                out.push(Tok::Ident(word.to_string()));
             }
             other => {
                 return Err(LexError {

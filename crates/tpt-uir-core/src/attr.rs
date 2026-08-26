@@ -1,4 +1,5 @@
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use crate::op_name::OpName;
 use crate::quant::QuantizationParams;
@@ -17,6 +18,10 @@ pub enum AttributeValue {
     /// Quantization layout metadata. Appended **last** so the postcard wire
     /// indices of all earlier variants are preserved (wire-compatible).
     Quantization(QuantizationParams),
+    /// Raw binary payload (e.g. an embedded constant tensor's bytes).
+    /// Appended **last** so the postcard wire indices of all earlier variants
+    /// are preserved (wire-compatible).
+    Bytes(Vec<u8>),
 }
 
 /// A named attribute: a key paired with a typed value.
@@ -60,6 +65,13 @@ impl Attribute {
         Attribute {
             key: key.into(),
             value: AttributeValue::Quantization(value),
+        }
+    }
+
+    pub fn bytes(key: impl Into<String>, value: impl Into<Vec<u8>>) -> Self {
+        Attribute {
+            key: key.into(),
+            value: AttributeValue::Bytes(value.into()),
         }
     }
 
