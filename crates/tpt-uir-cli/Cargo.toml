@@ -8,6 +8,7 @@ authors = ["TPT Solutions"]
 repository = "https://github.com/tpt-solutions/tpt-uir"
 homepage = "https://github.com/tpt-solutions/tpt-uir"
 documentation = "https://docs.rs/tpt-uir-cli"
+readme = "README.md"
 keywords = ["uir", "ir", "cli", "compiler"]
 categories = ["command-line-utilities"]
 

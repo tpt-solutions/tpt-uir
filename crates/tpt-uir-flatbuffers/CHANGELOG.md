@@ -22,3 +22,8 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Checked-in `flatc`-generated Rust code under `src/generated/`; the exact
   `flatc` version is pinned in `schema/README.md` (codegen is manual, not
   `build.rs`).
+
+### Fixed
+- `from_flatbuffer` now decodes the `Bytes` attribute variant (union
+  discriminant 8); previously it fell through to the `NONE` arm and returned
+  an error, so any region with a `Bytes` attribute failed to round-trip.
