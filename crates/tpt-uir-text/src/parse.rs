@@ -204,6 +204,12 @@ impl Parser {
 
     fn parse_attr_value(&mut self) -> PResult<AttributeValue> {
         match self.peek() {
+            Some(Tok::Hex(h)) => {
+                let h = h.clone();
+                self.next();
+                let bytes = decode_hex(&h)?;
+                Ok(AttributeValue::Bytes(bytes))
+            }
             Some(Tok::Ident(s)) if s == "tensor" => {
                 self.next();
                 Ok(AttributeValue::Type(self.parse_tensor_body()?))
@@ -390,4 +396,20 @@ pub fn parse(src: &str) -> Result<Region, String> {
         return Err("trailing tokens after region".to_string());
     }
     Ok(region)
+}
+
+/// Decode a `bytes<...>` hex payload (case-insensitive; must be whole bytes).
+fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
+    if hex.len() % 2 != 0 {
+        return Err(format!(
+            "bytes literal has odd length {} (two hex digits per byte)",
+            hex.len()
+        ));
+    }
+    (0..hex.len() / 2)
+        .map(|i| {
+            u8::from_str_radix(&hex[2 * i..2 * i + 2], 16)
+                .map_err(|e| format!("invalid hex byte at offset {}: {e}", 2 * i))
+        })
+        .collect()
 }

@@ -21,10 +21,10 @@ pub mod tpt_uir {
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_SCALAR_TYPE: i8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_SCALAR_TYPE: i8 = 15;
+pub const ENUM_MAX_SCALAR_TYPE: i8 = 17;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_SCALAR_TYPE: [ScalarType; 16] = [
+pub const ENUM_VALUES_SCALAR_TYPE: [ScalarType; 18] = [
   ScalarType::I8,
   ScalarType::I16,
   ScalarType::I32,
@@ -41,6 +41,8 @@ pub const ENUM_VALUES_SCALAR_TYPE: [ScalarType; 16] = [
   ScalarType::Q4_0,
   ScalarType::Q4_1,
   ScalarType::Q8_0,
+  ScalarType::Q5_0,
+  ScalarType::Q5_1,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -64,9 +66,11 @@ impl ScalarType {
   pub const Q4_0: Self = Self(13);
   pub const Q4_1: Self = Self(14);
   pub const Q8_0: Self = Self(15);
+  pub const Q5_0: Self = Self(16);
+  pub const Q5_1: Self = Self(17);
 
   pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 15;
+  pub const ENUM_MAX: i8 = 17;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::I8,
     Self::I16,
@@ -84,6 +88,8 @@ impl ScalarType {
     Self::Q4_0,
     Self::Q4_1,
     Self::Q8_0,
+    Self::Q5_0,
+    Self::Q5_1,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
@@ -104,6 +110,8 @@ impl ScalarType {
       Self::Q4_0 => Some("Q4_0"),
       Self::Q4_1 => Some("Q4_1"),
       Self::Q8_0 => Some("Q8_0"),
+      Self::Q5_0 => Some("Q5_0"),
+      Self::Q5_1 => Some("Q5_1"),
       _ => None,
     }
   }
@@ -346,10 +354,10 @@ pub struct TypeUnionTableOffset {}
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ATTRIBUTE_VALUE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_ATTRIBUTE_VALUE: u8 = 7;
+pub const ENUM_MAX_ATTRIBUTE_VALUE: u8 = 8;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ATTRIBUTE_VALUE: [AttributeValue; 8] = [
+pub const ENUM_VALUES_ATTRIBUTE_VALUE: [AttributeValue; 9] = [
   AttributeValue::NONE,
   AttributeValue::I64Value,
   AttributeValue::F64Value,
@@ -358,6 +366,7 @@ pub const ENUM_VALUES_ATTRIBUTE_VALUE: [AttributeValue; 8] = [
   AttributeValue::ShapeValue,
   AttributeValue::OpNameValue,
   AttributeValue::QuantizationValue,
+  AttributeValue::BytesValue,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -373,9 +382,10 @@ impl AttributeValue {
   pub const ShapeValue: Self = Self(5);
   pub const OpNameValue: Self = Self(6);
   pub const QuantizationValue: Self = Self(7);
+  pub const BytesValue: Self = Self(8);
 
   pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 7;
+  pub const ENUM_MAX: u8 = 8;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
     Self::I64Value,
@@ -385,6 +395,7 @@ impl AttributeValue {
     Self::ShapeValue,
     Self::OpNameValue,
     Self::QuantizationValue,
+    Self::BytesValue,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
@@ -397,6 +408,7 @@ impl AttributeValue {
       Self::ShapeValue => Some("ShapeValue"),
       Self::OpNameValue => Some("OpNameValue"),
       Self::QuantizationValue => Some("QuantizationValue"),
+      Self::BytesValue => Some("BytesValue"),
       _ => None,
     }
   }
@@ -1394,6 +1406,103 @@ impl core::fmt::Debug for StringValue<'_> {
       ds.finish()
   }
 }
+pub enum BytesValueOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct BytesValue<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for BytesValue<'a> {
+  type Inner = BytesValue<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> BytesValue<'a> {
+  pub const VT_V: flatbuffers::VOffsetT = 4;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    BytesValue { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
+    args: &'args BytesValueArgs<'args>
+  ) -> flatbuffers::WIPOffset<BytesValue<'bldr>> {
+    let mut builder = BytesValueBuilder::new(_fbb);
+    if let Some(x) = args.v { builder.add_v(x); }
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn v(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(BytesValue::VT_V, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for BytesValue<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("v", Self::VT_V, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct BytesValueArgs<'a> {
+    pub v: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+}
+impl<'a> Default for BytesValueArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    BytesValueArgs {
+      v: None,
+    }
+  }
+}
+
+pub struct BytesValueBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> BytesValueBuilder<'a, 'b, A> {
+  #[inline]
+  pub fn add_v(&mut self, v: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(BytesValue::VT_V, v);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> BytesValueBuilder<'a, 'b, A> {
+    let start = _fbb.start_table();
+    BytesValueBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<BytesValue<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for BytesValue<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("BytesValue");
+      ds.field("v", &self.v());
+      ds.finish()
+  }
+}
 pub enum ShapeValueOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -2204,6 +2313,21 @@ impl<'a> Attribute<'a> {
     }
   }
 
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn value_as_bytes_value(&self) -> Option<BytesValue<'a>> {
+    if self.value_type() == AttributeValue::BytesValue {
+      self.value().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { BytesValue::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
 }
 
 impl flatbuffers::Verifiable for Attribute<'_> {
@@ -2223,6 +2347,7 @@ impl flatbuffers::Verifiable for Attribute<'_> {
           AttributeValue::ShapeValue => v.verify_union_variant::<flatbuffers::ForwardsUOffset<ShapeValue>>("AttributeValue::ShapeValue", pos),
           AttributeValue::OpNameValue => v.verify_union_variant::<flatbuffers::ForwardsUOffset<OpNameValue>>("AttributeValue::OpNameValue", pos),
           AttributeValue::QuantizationValue => v.verify_union_variant::<flatbuffers::ForwardsUOffset<QuantizationValue>>("AttributeValue::QuantizationValue", pos),
+          AttributeValue::BytesValue => v.verify_union_variant::<flatbuffers::ForwardsUOffset<BytesValue>>("AttributeValue::BytesValue", pos),
           _ => Ok(()),
         }
      })?
@@ -2328,6 +2453,13 @@ impl core::fmt::Debug for Attribute<'_> {
         },
         AttributeValue::QuantizationValue => {
           if let Some(x) = self.value_as_quantization_value() {
+            ds.field("value", &x)
+          } else {
+            ds.field("value", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        AttributeValue::BytesValue => {
+          if let Some(x) = self.value_as_bytes_value() {
             ds.field("value", &x)
           } else {
             ds.field("value", &"InvalidFlatbuffer: Union discriminant does not match value.")

@@ -67,6 +67,8 @@ fn scalar_to_fb(s: CoreScalar) -> ScalarType {
         CoreScalar::Q4_0 => ScalarType::Q4_0,
         CoreScalar::Q4_1 => ScalarType::Q4_1,
         CoreScalar::Q8_0 => ScalarType::Q8_0,
+        CoreScalar::Q5_0 => ScalarType::Q5_0,
+        CoreScalar::Q5_1 => ScalarType::Q5_1,
     }
 }
 
@@ -233,6 +235,11 @@ fn build_attr_value<'a>(
                 AttributeValue::QuantizationValue,
                 Some(wrapper.as_union_value()),
             )
+        }
+        CoreAttrValue::Bytes(b) => {
+            let v = fbb.create_vector(b);
+            let off = BytesValue::create(fbb, &BytesValueArgs { v: Some(v) });
+            (AttributeValue::BytesValue, Some(off.as_union_value()))
         }
     }
 }
@@ -598,6 +605,7 @@ mod tests {
                                     scales: Some(1),
                                 },
                             ),
+                            Attribute::bytes("payload", vec![0xDE, 0xAD, 0xBE, 0xEF]),
                         ],
                     },
                     CoreOp {

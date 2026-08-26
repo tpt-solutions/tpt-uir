@@ -30,6 +30,8 @@ impl QuantizationParams {
 pub const Q4_0_BLOCK: (u32, u32) = (32, 18);
 pub const Q4_1_BLOCK: (u32, u32) = (32, 20);
 pub const Q8_0_BLOCK: (u32, u32) = (32, 34);
+pub const Q5_0_BLOCK: (u32, u32) = (32, 22);
+pub const Q5_1_BLOCK: (u32, u32) = (32, 24);
 
 /// Compute the byte size of a tensor of `num_elements` elements of type `dtype`.
 ///
@@ -46,6 +48,12 @@ pub fn tensor_byte_size(dtype: ScalarType, num_elements: usize) -> Option<usize>
         }
         ScalarType::Q8_0 => {
             quantized_blocks(num_elements, Q8_0_BLOCK.0 as usize, Q8_0_BLOCK.1 as usize)
+        }
+        ScalarType::Q5_0 => {
+            quantized_blocks(num_elements, Q5_0_BLOCK.0 as usize, Q5_0_BLOCK.1 as usize)
+        }
+        ScalarType::Q5_1 => {
+            quantized_blocks(num_elements, Q5_1_BLOCK.0 as usize, Q5_1_BLOCK.1 as usize)
         }
         other => num_elements.checked_mul(other.size_bytes()),
     }
@@ -85,6 +93,13 @@ mod tests {
     fn q4_1_q8_0_sizes() {
         assert_eq!(tensor_byte_size(ScalarType::Q4_1, 32).unwrap(), 20);
         assert_eq!(tensor_byte_size(ScalarType::Q8_0, 32).unwrap(), 34);
+    }
+
+    #[test]
+    fn q5_0_q5_1_sizes() {
+        assert_eq!(tensor_byte_size(ScalarType::Q5_0, 32).unwrap(), 22);
+        assert_eq!(tensor_byte_size(ScalarType::Q5_1, 32).unwrap(), 24);
+        assert_eq!(tensor_byte_size(ScalarType::Q5_0, 64).unwrap(), 44);
     }
 
     #[test]

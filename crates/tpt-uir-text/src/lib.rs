@@ -40,7 +40,7 @@ impl<'a> core::fmt::Display for Pretty<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tpt_uir_core::attr::Attribute;
+    use tpt_uir_core::attr::{Attribute, AttributeValue};
     use tpt_uir_core::op_name::OpName;
     use tpt_uir_core::quant::QuantizationParams;
     use tpt_uir_core::types::{Dimension, ScalarType, ShapeSpec, TensorType, Type};
@@ -169,5 +169,43 @@ mod tests {
     #[test]
     fn rejects_garbage() {
         assert!(parse_text("not a region @@@").is_err());
+    }
+
+    /// A `bytes<...>` attribute survives print → parse unchanged — including
+    /// all-digit payloads (the case a plain number/ident lexer mangles) and
+    /// the empty payload.
+    #[test]
+    fn bytes_attribute_roundtrips_through_text() {
+        let region_with = |bytes: Vec<u8>| Region {
+            blocks: vec![Block {
+                arguments: vec![],
+                operations: vec![Operation {
+                    id: 1,
+                    op_name: OpName::parse("tpt_crucible.const").unwrap(),
+                    operands: vec![],
+                    results: vec![1],
+                    regions: vec![],
+                    attributes: vec![Attribute {
+                        key: "data".into(),
+                        value: AttributeValue::Bytes(bytes),
+                    }],
+                }],
+            }],
+        };
+
+        for payload in [
+            vec![0x00, 0x48, 0x79, 0xff], // leading zero + letters + digits
+            vec![0x12, 0x34, 0x56],       // all digits: previously lexed as Int
+            vec![],                       // empty literal `bytes<>`
+        ] {
+            let region = region_with(payload.clone());
+            let text = to_text(&region);
+            let back = parse_text(&text).expect("parse should succeed");
+            assert_eq!(back, region, "round-trip mismatch for {payload:?}:\n{text}");
+        }
+
+        // The printed form really is the hex literal (not decimal).
+        let text = to_text(&region_with(vec![0xde, 0xad, 0xbe, 0xef]));
+        assert!(text.contains("bytes<deadbeef>"), "{text}");
     }
 }

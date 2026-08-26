@@ -21,6 +21,13 @@ pub enum ScalarType {
     Q4_0,
     Q4_1,
     Q8_0,
+    /// 5-bit quantization, GGUF layout (32 elems / 22 bytes). Appended last
+    /// to preserve the postcard wire indices of earlier variants.
+    Q5_0,
+    /// 5-bit quantization with scale + min, GGUF layout (32 elems / 24
+    /// bytes). Appended last to preserve the postcard wire indices of
+    /// earlier variants.
+    Q5_1,
 }
 
 impl ScalarType {
@@ -35,7 +42,7 @@ impl ScalarType {
             ScalarType::I32 | ScalarType::U32 | ScalarType::F32 => 4,
             ScalarType::I64 | ScalarType::U64 | ScalarType::F64 => 8,
             ScalarType::Q8_0 => 1,
-            ScalarType::Q4_0 | ScalarType::Q4_1 => 0,
+            ScalarType::Q4_0 | ScalarType::Q4_1 | ScalarType::Q5_0 | ScalarType::Q5_1 => 0,
         }
     }
 }
