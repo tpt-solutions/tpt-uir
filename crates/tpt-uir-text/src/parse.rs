@@ -400,7 +400,7 @@ pub fn parse(src: &str) -> Result<Region, String> {
 
 /// Decode a `bytes<...>` hex payload (case-insensitive; must be whole bytes).
 fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
-    if hex.len() % 2 != 0 {
+    if !hex.len().is_multiple_of(2) {
         return Err(format!(
             "bytes literal has odd length {} (two hex digits per byte)",
             hex.len()
