@@ -17,7 +17,7 @@ Compact guidance for working in this repo. Verified against `Cargo.toml`,
     relevant).
   - `tpt-uir-ffi` — C ABI (`cdylib`/`rlib`/`staticlib`), read-only inspection only.
   - `tpt-uir-cli` — `validate`/`print`/`convert` tool.
-  - `tpt-uir-examples` — `publish = false`; usage examples + e2e tests.
+  - `out-uir-examples` — `publish = false`; usage examples + e2e tests.
 
 ## Hard constraints (would break consumers if missed)
 

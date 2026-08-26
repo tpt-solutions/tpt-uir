@@ -268,7 +268,7 @@
 
 > Depends on Phases 6–9; written last to demonstrate the final feature set.
 
-- [x] New `crates/tpt-uir-examples/` (`publish = false`), depends on every other workspace crate except `tpt-uir-cli`
+- [x] New `crates/out-uir-examples/` (`publish = false`), depends on every other workspace crate except `tpt-uir-cli`
 - [x] `examples/quickstart.rs` — `RegionBuilder` → `validate_all` → `Quantization`/`dialect_version` attrs → postcard + FlatBuffers serialization → text pretty-print
 - [x] `examples/crucible_static_shapes.rs` — Crucible/`Fixed`-shape contrast case
 - [x] `tests/end_to_end.rs` — full pipeline as assertions (build → validate → serialize → deserialize → print → parse → equality)
@@ -304,9 +304,9 @@
 ### Adoption
 - [x] Add a short issues-only `CONTRIBUTING.md` (point at `AGENTS.md`'s quality-gate commands)
 - [x] Add a bug-report issue template under `.github/ISSUE_TEMPLATE/`
-- [x] Add a GPU-dialect-focused example in `crates/tpt-uir-examples/` (mirroring `crucible_static_shapes.rs`) — `examples/gpu_threaded_add.rs`
+- [x] Add a GPU-dialect-focused example in `crates/out-uir-examples/` (mirroring `crucible_static_shapes.rs`) — `examples/gpu_threaded_add.rs`
 - [x] Add a minimal C example calling `tpt-uir-ffi` directly, exercising `include/tpt_uir_ffi.h` — `crates/tpt-uir-ffi/examples/basic.c`
-- [x] Expand `crates/tpt-uir-examples/README.md` with a "cookbook" example showing a larger, more realistic graph — `examples/cookbook_mlp.rs`
+- [x] Expand `crates/out-uir-examples/README.md` with a "cookbook" example showing a larger, more realistic graph — `examples/cookbook_mlp.rs`
 
 ### Automation
 - [x] Add `cargo-deny` or `cargo-audit` CI step for license/advisory scanning (cargo-deny + root `deny.toml`, separate `supply-chain` CI job)
@@ -346,7 +346,7 @@
   (`source.tpt-uir-text`) highlighting blocks, op ids, value refs, op names,
   types, attributes; VS Code embedding recipe in `editors/textmate/README.md`.
   A full tree-sitter grammar remains future work.
-- [x] WASM playground — new `crates/tpt-uir-wasm` crate (wasm-bindgen:
+- [x] WASM playground — new `crates/out-uir-wasm` crate (wasm-bindgen:
   `format_text`/`validate_text`) plus `playground/index.html` editor UI;
   build instructions in `playground/README.md`. Compiles natively under all
   workspace CI gates.

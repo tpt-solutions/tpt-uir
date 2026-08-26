@@ -1,4 +1,4 @@
-# tpt-uir-examples
+# out-uir-examples
 
 Runnable examples and end-to-end tests for **TPT-UIR**. This crate is not
 published (`publish = false`); it exists to exercise the public API of every
@@ -6,7 +6,7 @@ other crate in the workspace together, the way a real consumer would.
 
 ## Examples
 
-Run with `cargo run --example <name> -p tpt-uir-examples`:
+Run with `cargo run --example <name> -p out-uir-examples`:
 
 | Example | Demonstrates |
 | --- | --- |
@@ -16,7 +16,7 @@ Run with `cargo run --example <name> -p tpt-uir-examples`:
 | [`cookbook_mlp`](examples/cookbook_mlp.rs) | Cookbook: a larger, realistic graph — fused block-quantized GEMM with a nested tile loop, memory-arena scope ops, GPU launch, and round-trips through all three wire formats. |
 
 ```sh
-cargo run --example quickstart -p tpt-uir-examples
+cargo run --example quickstart -p out-uir-examples
 ```
 
 ## Tests
@@ -26,7 +26,7 @@ cargo run --example quickstart -p tpt-uir-examples
 wire formats.
 
 ```sh
-cargo test -p tpt-uir-examples
+cargo test -p out-uir-examples
 ```
 
 ## License

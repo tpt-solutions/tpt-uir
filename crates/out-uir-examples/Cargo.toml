@@ -1,5 +1,5 @@
 [package]
-name = "tpt-uir-examples"
+name = "out-uir-examples"
 version = "0.1.0"
 edition = "2021"
 description = "Usage examples and end-to-end tests for TPT-UIR"

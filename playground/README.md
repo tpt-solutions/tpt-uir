@@ -1,14 +1,14 @@
 # TPT-UIR WASM Playground
 
 A minimal browser playground for the textual TPT-UIR format, powered by the
-`tpt-uir-wasm` crate (`format_text` / `validate_text` over
+`out-uir-wasm` crate (`format_text` / `validate_text` over
 [wasm-bindgen](https://rustwasm.github.io/wasm-pack/)).
 
 ## Build & run
 
 ```sh
 # one-time: install wasm-pack (https://rustwasm.github.io/wasm-pack/)
-wasm-pack build crates/tpt-uir-wasm --target web --out-dir ../../playground/pkg
+wasm-pack build crates/out-uir-wasm --target web --out-dir ../../playground/pkg
 
 # serve the repo root from any static file server:
 python -m http.server 8000

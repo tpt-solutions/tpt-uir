@@ -69,7 +69,7 @@
       status.className = "status ok";
     } catch (e) {
       status.textContent =
-        'wasm module not found. Build it with: wasm-pack build crates/tpt-uir-wasm --target web --out-dir ../../playground/pkg';
+        'wasm module not found. Build it with: wasm-pack build crates/out-uir-wasm --target web --out-dir ../../playground/pkg';
       status.className = "status err";
     }
   }

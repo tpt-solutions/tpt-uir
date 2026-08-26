@@ -108,7 +108,7 @@ cargo build --workspace --no-default-features
 
 - Add the dialect to `crates/tpt-uir-cli/src/main.rs` `cmd_validate`'s
   `--dialect` match arm.
-- Add an example under `crates/tpt-uir-examples/examples/` (mirror
+- Add an example under `crates/out-uir-examples/examples/` (mirror
   `gpu_threaded_add.rs`).
 - Update the root `README.md` crate table and this file if anything above
   changes.

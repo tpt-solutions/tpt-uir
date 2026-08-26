@@ -57,7 +57,7 @@ integration.
                                   │
                        ┌──────────▼──────────┐
                        │   tpt-uir-cli        │
-                       │   tpt-uir-examples   │
+                       │   out-uir-examples   │
                        └──────────────────────┘
 ```
 
@@ -76,7 +76,7 @@ text, and FFI crates depend only on `core` (and, where relevant, `dialects`).
 | `tpt-uir-text` | Hand-written textual lexer/parser/printer. | [README](crates/tpt-uir-text/README.md) · [CHANGELOG](crates/tpt-uir-text/CHANGELOG.md) |
 | `tpt-uir-ffi` | `cdylib`/`rlib`/`staticlib` C ABI for read-only inspection. | [README](crates/tpt-uir-ffi/README.md) · [CHANGELOG](crates/tpt-uir-ffi/CHANGELOG.md) |
 | `tpt-uir-cli` | `validate` / `print` / `convert` command-line tool. | [README](crates/tpt-uir-cli/README.md) · [CHANGELOG](crates/tpt-uir-cli/CHANGELOG.md) |
-| `tpt-uir-examples` | Usage examples and end-to-end tests (not published). | [README](crates/tpt-uir-examples/README.md) |
+| `out-uir-examples` | Usage examples and end-to-end tests (not published). | [README](crates/out-uir-examples/README.md) |
 
 ## Installation
 
@@ -168,7 +168,7 @@ tpt-uir-cli convert --in region.tptuir --out region.uir --to-format text
 
 For runnable, end-to-end versions of the above (including round-trips through
 all three formats and the C FFI), see
-[`crates/tpt-uir-examples/`](crates/tpt-uir-examples/README.md) and
+[`crates/out-uir-examples/`](crates/out-uir-examples/README.md) and
 [`crates/tpt-uir-cli/README.md`](crates/tpt-uir-cli/README.md) for the full CLI
 reference.
 

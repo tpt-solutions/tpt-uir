@@ -2,7 +2,7 @@
 //! quantized matmul, bounded shapes, a nested tile loop, memory-scope ops, and
 //! a full round-trip through all three wire formats.
 //!
-//! Run with `cargo run --example cookbook_mlp -p tpt-uir-examples`.
+//! Run with `cargo run --example cookbook_mlp -p out-uir-examples`.
 
 use tpt_uir_core::attr::Attribute;
 use tpt_uir_core::builder::{BlockBuilder, OpBuilder, RegionBuilder};

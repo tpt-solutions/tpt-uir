@@ -3,7 +3,7 @@
 //! Build for the web with:
 //!
 //! ```sh
-//! wasm-pack build crates/tpt-uir-wasm --target web --out-dir ../../playground/pkg
+//! wasm-pack build crates/out-uir-wasm --target web --out-dir ../../playground/pkg
 //! ```
 //!
 //! Then serve the repo root statically (`python -m http.server`) and open

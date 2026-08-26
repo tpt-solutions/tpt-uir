@@ -1,5 +1,5 @@
 [package]
-name = "tpt-uir-wasm"
+name = "out-uir-wasm"
 version = "0.1.0"
 edition = "2021"
 description = "WASM bindings for the TPT-UIR text format (browser playground)"
